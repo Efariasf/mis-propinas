@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxRDlFNzUiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDYiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iOTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+JDwvdGV4dD4KPC9zdmc+">
+<meta name="theme-color" content="#1D9E75">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Propinas">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxRDlFNzUiLz48dGV4dCB4PSIzMiIgeT0iNDYiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iOTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+JDwvdGV4dD48L3N2Zz4=">
+<link rel="manifest" href="#" id="manifest-link">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Propinas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f4;--bg3:#eeede8;
+  --text:#1a1a18;--text2:#6b6b67;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --green:#1D9E75;--green-dark:#0F6E56;
+  --blue:#185FA5;--blue-dark:#0C447C;
+  --amber:#BA7517;--amber-bg:rgba(186,117,23,0.1);
+  --red:#E24B4A;--radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1c1c1a;--bg2:#262624;--bg3:#2f2f2c;--text:#f0efe8;--text2:#8a8a85;--border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);}
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-card{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:36px;width:100%;max-width:400px;}
+.auth-logo{font-size:32px;margin-bottom:8px;}
+.auth-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+.auth-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+.auth-field{margin-bottom:16px;}
+.auth-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.auth-field input{width:100%;height:42px;padding:0 14px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:14px;font-family:inherit;}
+.auth-field input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12);}
+.btn-auth{width:100%;height:44px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px;}
+.btn-auth:hover{background:var(--green-dark);}
+.btn-auth:disabled{opacity:.6;cursor:not-allowed;}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--text2);}
+.auth-switch a{color:var(--green);cursor:pointer;font-weight:600;text-decoration:none;}
+.auth-msg{font-size:13px;margin-top:12px;padding:10px 14px;border-radius:var(--radius);display:none;}
+.auth-msg.error{background:rgba(226,75,74,.1);color:var(--red);display:block;}
+.auth-msg.success{background:rgba(29,158,117,.1);color:var(--green);display:block;}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.auth-divider span{font-size:12px;color:var(--text2);white-space:nowrap;}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:0.5px;background:var(--border2);}
+
+/* APP */
+.app-wrap{display:none;}
+.app-wrap.visible{display:block;}
+.top-bar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.top-bar-left{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;}
+.user-info{display:flex;align-items:center;gap:12px;}
+.user-email{font-size:12px;color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-logout{background:none;border:0.5px solid var(--border2);border-radius:var(--radius);padding:0 14px;height:32px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--text2);font-weight:500;}
+  .btn-settings{background:none;border:0.5px solid var(--border2);border-radius:var(--radius);width:32px;height:32px;font-size:14px;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+  .btn-settings:hover{color:var(--text);border-color:var(--text2);}
+  .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal-overlay.visible{display:flex;}
+  .modal-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .modal-header h3{font-size:16px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:20px;color:var(--text2);cursor:pointer;line-height:1;padding:0 4px;}
+  .modal-section{margin-bottom:22px;padding-bottom:22px;border-bottom:0.5px solid var(--border);}
+  .modal-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .modal-section-title{font-size:13px;font-weight:700;margin-bottom:10px;}
+  .modal-section .field{margin-bottom:10px;}
+.btn-logout:hover{background:var(--bg2);color:var(--red);border-color:var(--red);}
+.container{max-width:960px;margin:0 auto;padding:28px 16px;}
+
+/* GRAND TOTAL */
+.grand-total{background:var(--green);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.grand-total-left h2{font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);margin-bottom:4px;}
+.grand-total-left .amount{font-size:36px;font-weight:700;color:white;}
+.grand-total-right{display:flex;gap:24px;flex-wrap:wrap;}
+.grand-stat{text-align:center;}
+.grand-stat-label{font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:2px;}
+.grand-stat-value{font-size:18px;font-weight:700;color:white;}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+.btn{border:none;border-radius:var(--radius);padding:0 18px;height:36px;font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-weight:500;}
+.btn-green{background:var(--green);color:white;}
+.btn-green:hover{background:var(--green-dark);}
+.btn-blue{background:var(--blue);color:white;}
+.btn-blue:hover{background:var(--blue-dark);}
+
+/* SECTIONS */
+.sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+@media(max-width:700px){.sections-grid{grid-template-columns:1fr;}}
+
+/* MAIN TABS */
+.main-tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:0.5px solid var(--border);overflow-x:auto;}
+.main-tab{background:none;border:none;padding:10px 16px;font-size:13px;font-weight:600;font-family:inherit;color:var(--text2);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.main-tab:hover{color:var(--text);}
+.main-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* MINI STATS (resumen de números en una sola línea, sin cajas) */
+.mini-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-bottom:16px;}
+.mini-stats strong{color:var(--text);font-weight:700;}
+.mini-stats .dot{color:var(--border2);}
+.section-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.section-header{padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.section-header h3{font-size:15px;font-weight:600;}
+.section-total{font-size:18px;font-weight:700;color:var(--green);}
+.section-body{padding:16px 20px;}
+
+/* METRICS */
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:12px;}
+.metric-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.metric-value{font-size:18px;font-weight:700;color:var(--text);}
+.metric-value.green{color:var(--green);}
+.metric-value.blue{color:var(--blue);}
+.metric-value.amber{color:var(--amber);}
+
+/* FORM */
+.form-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;}
+.form-title{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text2);}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
+.field label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.03em;}
+.field input,.field select{width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+.btn-primary{background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 20px;height:36px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+
+/* TABLE */
+.table-wrap{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;}
+.table-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:0.5px solid var(--border);}
+.table-header span{font-size:14px;font-weight:600;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.filters select,.filters input{height:30px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;letter-spacing:.05em;}
+td{padding:10px 14px;color:var(--text);border-bottom:0.5px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg2);}
+.amount{font-weight:700;color:var(--green);}
+.date-badge{display:inline-block;background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:2px 8px;font-size:11px;color:var(--text2);}
+.tipo-pro{display:inline-block;background:rgba(24,95,165,.12);color:#185FA5;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;}
+.tipo-premium{display:inline-block;background:rgba(186,117,23,.12);color:#854F0B;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;}
+.action-btns{display:flex;gap:2px;}
+.btn-edit{background:none;border:none;cursor:pointer;color:var(--text2);font-size:15px;padding:3px 6px;border-radius:5px;}
+.btn-edit:hover{color:var(--blue);background:rgba(24,95,165,.1);}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text2);font-size:15px;padding:3px 6px;border-radius:5px;}
+.btn-del:hover{color:var(--red);background:rgba(226,75,74,.1);}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text2);font-size:13px;}
+.empty-icon{font-size:30px;margin-bottom:8px;}
+
+/* CHART */
+.chart-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:24px;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.chart-header h3{font-size:14px;font-weight:600;}
+.tab-row{display:flex;gap:6px;}
+.tab{padding:5px 14px;border-radius:var(--radius);border:0.5px solid var(--border2);background:none;font-size:12px;font-family:inherit;color:var(--text2);cursor:pointer;font-weight:500;}
+.tab.active{background:var(--green);color:white;border-color:var(--green);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:480px;margin:16px;border:0.5px solid var(--border2);}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-cancel{background:none;border:0.5px solid var(--border2);border-radius:var(--radius);padding:0 18px;height:36px;font-size:13px;font-family:inherit;cursor:pointer;color:var(--text2);}
+.btn-cancel:hover{background:var(--bg2);}
+.btn-save{background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 22px;height:36px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;}
+.btn-save:hover{background:var(--green-dark);}
+.err{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+.note-text{color:var(--text2);font-size:12px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:white;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:300;}
+.toast.show{opacity:1;transform:translateY(0);}
+.loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--text2);font-size:14px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.footer{text-align:center;font-size:12px;color:var(--text2);margin-top:32px;padding-top:16px;border-top:0.5px solid var(--border);}
+
+  .cobro-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:24px;display:flex;flex-direction:column;}
+  .cobro-footer{margin-top:16px;padding-top:16px;border-top:0.5px solid var(--border);}
+  .cobro-footer:not(:empty){margin-top:auto;}
+  .cobro-header{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border);}
+  .cobro-title{font-size:16px;font-weight:700;color:var(--text);}
+  .cobro-periodo{font-size:13px;color:var(--text2);margin-top:4px;}
+  .cobro-monto{font-size:32px;font-weight:700;color:var(--green);}
+  .cobro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+  .cobro-stat{background:var(--bg2);border-radius:var(--radius);padding:14px;}
+  .cobro-stat-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .cobro-stat-value{font-size:18px;font-weight:700;color:var(--text);}
+  .cobro-stat-value.green{color:var(--green);}
+  .cobro-stat-value.blue{color:var(--blue);}
+  .cobro-stat-value.amber{color:var(--amber);}
+  .periodo-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(29,158,117,.12);color:var(--green);margin-left:8px;}
+.admin-wrap{display:none;}.admin-wrap.visible{display:block;}
+  .admin-banner{background:var(--blue);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .admin-banner h2{color:white;font-size:18px;font-weight:700;}
+  .admin-banner p{color:rgba(255,255,255,0.75);font-size:13px;margin-top:2px;}
+  .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
+  .admin-metric{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;}
+  .admin-metric-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .admin-metric-value{font-size:22px;font-weight:700;color:var(--text);}
+  .admin-metric-value.green{color:var(--green);}
+  .admin-metric-value.blue{color:var(--blue);}
+  .ranking-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;}
+  .ranking-header{padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .ranking-header h3{font-size:15px;font-weight:600;}
+  .ranking-row{display:flex;align-items:center;padding:14px 20px;border-bottom:0.5px solid var(--border);gap:14px;}
+  .ranking-row:last-child{border-bottom:none;}
+  .ranking-pos{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .pos-1{background:#FFD700;color:#856200;}
+  .pos-2{background:#C0C0C0;color:#555;}
+  .pos-3{background:#CD7F32;color:#5a3000;}
+  .pos-other{background:var(--bg2);color:var(--text2);}
+  .ranking-info{flex:1;min-width:0;}
+  .ranking-email{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ranking-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+  .ranking-amount{font-size:16px;font-weight:700;color:var(--green);text-align:right;flex-shrink:0;}
+  .ranking-bar-wrap{height:4px;background:var(--bg2);border-radius:2px;margin-top:6px;}
+  .ranking-bar{height:4px;background:var(--green);border-radius:2px;}
+  .nav-admin{background:var(--blue);color:white;border:none;border-radius:var(--radius);padding:0 14px;height:32px;font-size:12px;font-family:inherit;cursor:pointer;font-weight:500;}
+  .nav-admin:hover{background:var(--blue-dark);}
+  .nav-back{background:none;border:0.5px solid var(--border2);border-radius:var(--radius);padding:0 14px;height:32px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--text2);}
+  .nav-back:hover{background:var(--bg2);}
+  .install-banner{background:var(--bg);border:0.5px solid var(--green);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .install-banner p{font-size:13px;color:var(--text);margin:0;}
+  .install-banner span{font-size:12px;color:var(--text2);}
+  .btn-install{background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 16px;height:34px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;}
+  .btn-install:hover{background:var(--green-dark);}
+    .btn-ya-cobre{background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 20px;height:36px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;transition:background .15s;}
+  .btn-ya-cobre:hover{background:var(--green-dark);}
+  .btn-ya-cobre:disabled{opacity:.5;cursor:not-allowed;}
+  .cobro-pagado{background:rgba(29,158,117,.08);border:0.5px solid rgba(29,158,117,.3);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--green);font-weight:500;}
+  .cobro-pendiente{background:rgba(186,117,23,.08);border:0.5px solid rgba(186,117,23,.3);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--amber);font-weight:600;}
+  .tipo-cobro-propinas{display:inline-block;background:rgba(29,158,117,.12);color:var(--green);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .tipo-cobro-membresias{display:inline-block;background:rgba(24,95,165,.12);color:var(--blue);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .tipo-cobro-total{display:inline-block;background:var(--bg2);color:var(--text2);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .readonly-input{background:var(--bg3)!important;cursor:not-allowed!important;}
+/* ===== AJUSTES PARA PANTALLAS DE TELÉFONO (no afecta a PC) ===== */
+@media(max-width:600px){
+  .container{padding:16px 12px;}
+
+  .top-bar{padding:0 10px;gap:6px;}
+  .top-bar-left{font-size:14px;}
+  .user-info{gap:6px;}
+  .user-email{max-width:64px;font-size:11px;}
+  .user-info select{padding:0 6px !important;font-size:11px !important;}
+  .nav-admin,.btn-logout{padding:0 8px;font-size:11px;flex-shrink:0;}
+  .btn-settings{width:28px;height:28px;font-size:12px;flex-shrink:0;}
+
+  .grand-total{padding:18px 16px;flex-direction:column;align-items:flex-start;}
+  .grand-total-left .amount{font-size:28px;}
+  .grand-total-right{gap:16px;width:100%;justify-content:space-between;}
+
+  .export-btns{gap:6px;}
+  .export-btns .btn{flex:1;justify-content:center;padding:0 10px;font-size:12px;}
+
+  .cobro-card{padding:16px;}
+  .cobro-monto{font-size:26px;}
+  .cobro-header{gap:6px;}
+  .cobro-footer>div{flex-direction:column;align-items:stretch !important;}
+  .btn-ya-cobre{width:100%;justify-content:center;}
+
+  .table-wrap table,.ranking-card table{min-width:540px;}
+
+  .modal-card{padding:18px;max-width:94vw;}
+  #export-range-fields{flex-wrap:wrap;}
+
+  .admin-metric{padding:12px;}
+  .admin-metric-value{font-size:16px;}
+  .ranking-row{padding:12px 14px;gap:10px;}
+  .ranking-amount{font-size:14px;}
+
+  .chart-card,.form-card,.section-card{padding:14px;}
+  .tab-row{flex-wrap:wrap;}
+
+  .auth-card{padding:24px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-screen">
+  <div class="spinner"></div>
+  <span>Cargando...</span>
+</div>
+
+<!-- AUTH -->
+<div id="auth-wrap" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">💵</div>
+    <div class="auth-title">Mis Propinas</div>
+    <div class="auth-sub">Registra y visualiza tus ganancias fácilmente</div>
+    <div id="login-form">
+      <div class="auth-field"><label>Correo electrónico</label><input id="l-email" type="email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter')login()"></div>
+      <div class="auth-field"><label>Contraseña</label><input id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+      <div style="text-align:right;margin:-8px 0 12px"><a onclick="showForgotPassword()" style="font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</a></div>
+      <button class="btn-auth" onclick="login()">Entrar</button>
+      <div id="login-msg" class="auth-msg"></div>
+      <div class="auth-divider"><span>¿No tienes cuenta?</span></div>
+      <div class="auth-switch"><a onclick="showRegister()">Crear cuenta nueva →</a></div>
+    </div>
+    <div id="forgot-form" style="display:none">
+      <div class="auth-field"><label>Correo electrónico</label><input id="fp-email" type="email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter')sendPasswordReset()"></div>
+      <button class="btn-auth" onclick="sendPasswordReset()">Enviar enlace de recuperación</button>
+      <div id="forgot-msg" class="auth-msg"></div>
+      <div class="auth-switch" style="margin-top:12px"><a onclick="showLogin()">← Volver a iniciar sesión</a></div>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="auth-field"><label>Tu nombre</label><input id="r-nombre" type="text" placeholder="Ej: Juan Pérez"></div>
+      <div class="auth-field"><label>Correo electrónico</label><input id="r-email" type="email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter')register()"></div>
+      <div class="auth-field"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')register()"></div>
+      <div class="auth-field"><label>Confirmar contraseña</label><input id="r-pass2" type="password" placeholder="Repite la contraseña"></div>
+      <button class="btn-auth" onclick="register()">Crear cuenta</button>
+      <div id="register-msg" class="auth-msg"></div>
+      <div class="auth-divider"><span>¿Ya tienes cuenta?</span></div>
+      <div class="auth-switch"><a onclick="showLogin()">← Iniciar sesión</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- RECUPERAR CONTRASEÑA (se activa solo al hacer clic en el enlace del correo) -->
+<div id="recovery-wrap" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">🔑</div>
+    <div class="auth-title">Nueva contraseña</div>
+    <div class="auth-sub">Escribe tu nueva contraseña para tu cuenta</div>
+    <div class="auth-field"><label>Nueva contraseña</label><input id="rec-pass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')updatePasswordRecovery()"></div>
+    <div class="auth-field"><label>Confirmar contraseña</label><input id="rec-pass2" type="password" placeholder="Repite la contraseña" onkeydown="if(event.key==='Enter')updatePasswordRecovery()"></div>
+    <button class="btn-auth" onclick="updatePasswordRecovery()">Guardar nueva contraseña</button>
+    <div id="recovery-msg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-wrap" class="app-wrap">
+  <div class="top-bar">
+    <div class="top-bar-left">Mis Propinas</div>
+    <div class="user-info">
+      <span class="user-email" id="user-email"></span>
+      <select id="ciclo-select" onchange="saveCiclo()" title="Ciclo de cobro de tus propinas (las membresías siempre son mensuales)" style="height:30px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--border-radius,8px);background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
+        <option value="mensual">📅 Mensual</option>
+        <option value="quincenal">📅 Quincenal</option>
+      </select>
+      <button class="nav-admin" id="btn-admin" onclick="showAdminPanel()" style="display:none">👑 Admin</button><button class="btn-settings" onclick="openSettings()" title="Configuración de cuenta">⚙️</button><button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- PANEL DE CONFIGURACIÓN DE CUENTA -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ Configuración de cuenta</h3>
+        <button class="modal-close" onclick="closeSettings()">×</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">📧 Correo electrónico</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Correo actual: <strong id="settings-current-email" style="color:var(--text)"></strong></div>
+        <div class="field"><label>Nuevo correo</label><input id="settings-new-email" type="email" placeholder="tu-nuevo@correo.com" onkeydown="if(event.key==='Enter')updateEmailSettings()"></div>
+        <button class="btn-primary" id="btn-update-email" onclick="updateEmailSettings()">Actualizar correo</button>
+        <div id="settings-email-msg" class="auth-msg"></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">🔒 Contraseña</div>
+        <div class="field"><label>Nueva contraseña</label><input id="settings-new-pass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')updatePasswordSettings()"></div>
+        <div class="field"><label>Confirmar contraseña</label><input id="settings-new-pass2" type="password" placeholder="Repite la contraseña" onkeydown="if(event.key==='Enter')updatePasswordSettings()"></div>
+        <button class="btn-primary" id="btn-update-pass" onclick="updatePasswordSettings()">Actualizar contraseña</button>
+        <div id="settings-pass-msg" class="auth-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- GRAN TOTAL (siempre visible, es el dato principal) -->
+    <div class="grand-total">
+      <div class="grand-total-left">
+        <h2>Total de ganancias</h2>
+        <div class="amount" id="grand-total">$0.00</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">Propinas + Membresías</div>
+      </div>
+      <div class="grand-total-right">
+        <div class="grand-stat"><div class="grand-stat-label">Este mes</div><div class="grand-stat-value" id="grand-month">$0.00</div></div>
+        <div class="grand-stat"><div class="grand-stat-label">Este año</div><div class="grand-stat-value" id="grand-year">$0.00</div></div>
+        <div class="grand-stat"><div class="grand-stat-label">Registros</div><div class="grand-stat-value" id="grand-count">0</div></div>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="main-tabs">
+      <button class="main-tab active" data-tab="resumen" onclick="showMainTab('resumen')">📊 Resumen</button>
+      <button class="main-tab" data-tab="propinas" onclick="showMainTab('propinas')">💵 Propinas</button>
+      <button class="main-tab" data-tab="membresias" onclick="showMainTab('membresias')">🏆 Membresías</button>
+      <button class="main-tab" data-tab="cobros" onclick="showMainTab('cobros')">💳 Cobros</button>
+    </div>
+
+    <!-- INSTALL BANNER -->
+    <div class="install-banner" id="install-banner" style="display:none">
+      <div>
+        <p>📱 <strong>Instala esta app</strong> en tu teléfono</p>
+        <span>Ábrela como una app real desde tu pantalla de inicio</span>
+      </div>
+      <button class="btn-install" onclick="installApp()" id="btn-install-action">Instalar app</button>
+    </div>
+
+    <!-- ===== PESTAÑA: RESUMEN ===== -->
+    <div class="tab-panel active" id="tab-resumen">
+
+      <div class="sections-grid" style="margin-bottom:24px">
+
+        <!-- COBRO DE PROPINAS -->
+        <div class="cobro-card" style="margin-bottom:0">
+        <div class="cobro-header">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+            <div class="cobro-title">💵 Cobro de propinas</div>
+            <span class="periodo-badge" id="ciclo-badge">Mensual</span>
+          </div>
+          <div class="cobro-periodo" id="cobro-periodo-prop"></div>
+          <div style="margin-top:8px">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Acumulado este período</div>
+            <div class="cobro-monto" id="cobro-monto-prop">$0.00</div>
+            <div id="cobro-comparacion-prop" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
+          </div>
+        </div>
+          <div class="cobro-footer" id="cobro-footer-prop"></div>
+        </div>
+
+        <!-- COBRO DE MEMBRESÍAS (siempre mensual, sin importar el ciclo de propinas) -->
+        <div class="cobro-card" style="margin-bottom:0">
+          <div class="cobro-header">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+              <div class="cobro-title">🏆 Cobro de membresías</div>
+              <span class="periodo-badge" style="background:rgba(24,95,165,.12);color:var(--blue)">Mensual</span>
+            </div>
+            <div class="cobro-periodo" id="cobro-periodo-mem"></div>
+            <div style="margin-top:8px">
+              <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Acumulado este período</div>
+              <div class="cobro-monto" id="cobro-monto-mem">$0.00</div>
+              <div id="cobro-comparacion-mem" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
+            </div>
+          </div>
+          <div class="mini-stats" style="margin:12px 0 0">
+            <span>Pro: <strong id="cobro-pro-mem">$0.00</strong></span>
+            <span class="dot">·</span>
+            <span>Premium: <strong id="cobro-premium-mem">$0.00</strong></span>
+          </div>
+          <div class="cobro-footer" id="cobro-footer-mem"></div>
+        </div>
+
+      </div>
+
+      <!-- ESTADÍSTICAS Y META DEL MES -->
+      <div class="sections-grid" style="margin-bottom:24px">
+        <div class="cobro-card" style="margin-bottom:0">
+          <div class="cobro-title" style="margin-bottom:14px">📈 Tus estadísticas</div>
+          <div class="mini-stats" style="margin-bottom:0">
+            <span>Promedio por propina (este mes): <strong id="stat-promedio">$0.00</strong></span>
+            <span class="dot">·</span>
+            <span>Mejor día: <strong id="stat-mejor-dia">—</strong></span>
+          </div>
+        </div>
+
+        <div class="cobro-card" style="margin-bottom:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+            <div class="cobro-title">🎯 Meta del mes</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input id="meta-input" type="number" min="0" step="10" placeholder="0" style="width:90px;height:30px;padding:0 8px;border:0.5px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;" onkeydown="if(event.key==='Enter')saveMeta()">
+              <button class="btn-primary" style="height:30px;padding:0 14px;font-size:12px" onclick="saveMeta()">Guardar</button>
+            </div>
+          </div>
+          <div id="meta-progress-wrap" style="display:none">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px">
+              <span id="meta-actual">$0.00</span>
+              <span id="meta-objetivo">de $0.00</span>
+            </div>
+            <div style="background:var(--bg2);border-radius:8px;height:14px;overflow:hidden">
+              <div id="meta-bar" style="background:var(--green);height:100%;width:0%;transition:width 0.4s"></div>
+            </div>
+            <div id="meta-msg" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
+          </div>
+          <div id="meta-empty-msg" style="font-size:13px;color:var(--text2)">Ponte una meta de ganancias para este mes y aquí verás tu progreso.</div>
+        </div>
+      </div>
+
+      <!-- CHART COMBINADO -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>📈 Resumen visual de ganancias</h3>
+          <div class="tab-row">
+            <button class="tab" onclick="setChart('daily',this)">Por día</button>
+            <button class="tab active" onclick="setChart('monthly',this)">Por mes</button>
+            <button class="tab" onclick="setChart('yearly',this)">Por año</button>
+          </div>
+        </div>
+        <div style="position:relative;width:100%;height:280px">
+          <canvas id="mainChart" role="img" aria-label="Gráfica combinada de ganancias"></canvas>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:3px;background:#1D9E75;display:inline-block"></span>Propinas</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:3px;background:#185FA5;display:inline-block"></span>Membresías Pro</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:3px;background:#BA7517;display:inline-block"></span>Membresías Premium</span>
+        </div>
+      </div>
+
+      <div class="export-btns">
+        <button class="btn btn-green" onclick="openExportModal('excel')">📊 Exportar Excel</button>
+        <button class="btn btn-blue" onclick="openExportModal('pdf')">📄 Exportar PDF</button>
+      </div>
+    </div>
+
+    <!-- PANEL DE EXPORTACIÓN -->
+    <div class="modal-overlay" id="export-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="export-modal-title">📊 Exportar</h3>
+          <button class="modal-close" onclick="closeExportModal()">×</button>
+        </div>
+        <div class="modal-section">
+          <div class="field">
+            <label>¿Qué período quieres exportar?</label>
+            <select id="export-period" onchange="toggleExportRange()" style="width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
+              <option value="mes">Mes actual</option>
+              <option value="anio">Año actual</option>
+              <option value="todo">Todo el historial</option>
+              <option value="custom">Rango personalizado</option>
+            </select>
+          </div>
+          <div id="export-range-fields" style="display:none;gap:10px;margin-top:10px">
+            <div class="field"><label>Desde</label><input id="export-desde" type="date"></div>
+            <div class="field"><label>Hasta</label><input id="export-hasta" type="date"></div>
+          </div>
+          <button class="btn-primary" style="margin-top:10px;width:100%" onclick="runExport()">Generar archivo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PESTAÑA: PROPINAS ===== -->
+    <div class="tab-panel" id="tab-propinas">
+      <div class="mini-stats">
+        <span><strong id="tip-section-total">$0.00</strong> en total</span>
+        <span class="dot">·</span>
+        <span><strong id="m-month">$0.00</strong> este mes</span>
+        <span class="dot">·</span>
+        <span><strong id="m-year">$0.00</strong> este año</span>
+        <span class="dot">·</span>
+        <span><strong id="m-count">0</strong> registros</span>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">➕ Agregar propina</div>
+        <div class="form-grid">
+          <div class="field"><label>Nombre</label><input id="f-name" type="text" placeholder="Ej: Mesa 5..."></div>
+          <div class="field"><label>Fecha</label><input id="f-date" type="date"></div>
+          <div class="field"><label>Monto $</label><input id="f-amount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="field"><label>Nota</label><input id="f-note" type="text" placeholder="Opcional..."></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <button class="btn-primary" id="btn-add" onclick="addTip()">+ Agregar</button>
+          <span class="err" id="form-error">Completa nombre, fecha y monto.</span>
+        </div>
+      </div>
+
+      <!-- HISTORIAL PROPINAS -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <span>📋 Historial de propinas</span>
+          <div class="filters">
+            <select id="fil-year" onchange="renderTips()"><option value="">Todos los años</option></select>
+            <select id="fil-month" onchange="renderTips()">
+              <option value="">Todos los meses</option>
+              <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+              <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <input id="fil-search" type="text" placeholder="🔍 Buscar..." oninput="renderTips()" style="min-width:120px">
+          </div>
+        </div>
+        <div id="tip-filtered-summary" style="padding:0 20px 14px;font-size:13px;color:var(--text2)"></div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:28%">Nombre</th><th style="width:22%">Fecha</th>
+            <th style="width:16%">Monto</th><th style="width:22%">Nota</th><th style="width:12%"></th>
+          </tr></thead>
+          <tbody id="tip-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PESTAÑA: MEMBRESÍAS ===== -->
+    <div class="tab-panel" id="tab-membresias">
+      <div class="mini-stats">
+        <span><strong id="mem-section-total">$0.00</strong> en total</span>
+        <span class="dot">·</span>
+        <span><strong id="mm-month">$0.00</strong> este mes</span>
+        <span class="dot">·</span>
+        <span><strong id="mm-pro">0</strong> Pro</span>
+        <span class="dot">·</span>
+        <span><strong id="mm-premium">0</strong> Premium</span>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">➕ Registrar membresía</div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="field" style="flex:1;min-width:160px">
+            <label>Tipo de membresía</label>
+            <select id="m-tipo" onchange="updateMonto()" style="width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
+              <option value="PRO">PRO — $10.00</option>
+              <option value="PREMIUM">PREMIUM — $30.00</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btn-add-mem" onclick="addMembresia()" style="height:36px;white-space:nowrap">+ Registrar</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">Se registrará automáticamente en <strong id="mes-actual"></strong></div>
+        <span class="err" id="mem-error" style="margin-top:6px">Error al guardar.</span>
+      </div>
+
+      <!-- HISTORIAL MEMBRESIAS -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <span>🏆 Historial de membresías</span>
+          <div class="filters">
+            <select id="mfil-year" onchange="renderMems()"><option value="">Todos los años</option></select>
+            <select id="mfil-month" onchange="renderMems()">
+              <option value="">Todos los meses</option>
+              <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+              <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <select id="mfil-tipo" onchange="renderMems()">
+              <option value="">Todos</option>
+              <option value="PRO">PRO</option>
+              <option value="PREMIUM">PREMIUM</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:25%">Tipo</th><th style="width:30%">Mes</th>
+            <th style="width:25%">Ganancia</th><th style="width:20%"></th>
+          </tr></thead>
+          <tbody id="mem-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PESTAÑA: COBROS ===== -->
+    <div class="tab-panel" id="tab-cobros">
+      <div id="historial-cobros-wrap" style="display:none">
+        <div class="table-wrap">
+          <div class="table-header">
+            <span>💳 Mis cobros anteriores</span>
+          </div>
+          <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="width:16%">Tipo</th>
+              <th style="width:23%">Período</th>
+              <th style="width:20%">Fecha de cobro</th>
+              <th style="width:17%">Monto cobrado</th>
+              <th style="width:10%">Estado</th>
+              <th style="width:14%">Acción</th>
+            </tr></thead>
+            <tbody id="cobros-body"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" id="cobros-empty-msg" style="display:none">
+        <div class="empty-icon">💳</div>
+        Aún no has confirmado ningún cobro. Cuando le des "Ya cobré" en la pestaña Resumen, aparecerá aquí.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-wrap" class="admin-wrap">
+    <div class="top-bar">
+      <div class="top-bar-left">👑 Panel de Administrador</div>
+      <div class="user-info">
+        <button class="nav-back" onclick="showUserPanel()">← Mi panel</button>
+        <button class="nav-admin" id="btn-admin" onclick="showAdminPanel()" style="display:none">👑 Admin</button><button class="btn-logout" onclick="logout()">Salir</button>
+      </div>
+    </div>
+    <div class="container">
+      <div class="admin-banner">
+        <div>
+          <h2>Panel de Administrador</h2>
+          <p>Resumen de ganancias de todo el equipo</p>
+        </div>
+        <div id="admin-periodo-badge" style="background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:20px;font-size:12px;color:white;font-weight:600;"></div>
+      </div>
+      <div class="admin-grid">
+        <div class="admin-metric"><div class="admin-metric-label">Total equipo</div><div class="admin-metric-value green" id="adm-total">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Este mes</div><div class="admin-metric-value" id="adm-month">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Propinas</div><div class="admin-metric-value green" id="adm-tips">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Membresías</div><div class="admin-metric-value blue" id="adm-mems">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Miembros</div><div class="admin-metric-value" id="adm-users">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Pro vendidas</div><div class="admin-metric-value blue" id="adm-pro">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Premium vendidas</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
+      </div>
+
+      <div class="ranking-card">
+        <div class="ranking-header">
+          <h3>🏆 Ranking de propinas — este mes</h3>
+          <span style="font-size:12px;color:var(--text2)" id="adm-mes-label"></span>
+        </div>
+        <div id="ranking-list"></div>
+      </div>
+
+      <div class="ranking-card">
+        <div class="ranking-header"><h3>📊 Todos los registros del equipo</h3></div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Usuario</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Tipo</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Detalle</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Fecha</th>
+              <th style="padding:10px 16px;text-align:right;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Monto</th>
+            </tr></thead>
+            <tbody id="adm-all-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COBROS DEL EQUIPO -->
+      <div class="ranking-card">
+        <div class="ranking-header"><h3>💳 Cobros registrados del equipo</h3></div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Usuario</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Tipo</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Período</th>
+              <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Fecha cobro</th>
+              <th style="padding:10px 16px;text-align:right;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Monto</th>
+              <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:600;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg2);text-transform:uppercase;">Acción</th>
+            </tr></thead>
+            <tbody id="adm-cobros-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- EDIT TIP MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar propina</div>
+    <div class="form-grid">
+      <div class="field"><label>Nombre</label><input id="e-name" type="text"></div>
+      <div class="field"><label>Fecha</label><input id="e-date" type="date"></div>
+      <div class="field"><label>Monto $</label><input id="e-amount" type="number" min="0" step="0.01"></div>
+      <div class="field"><label>Nota</label><input id="e-note" type="text"></div>
+    </div>
+    <span class="err" id="edit-error">Completa todos los campos.</span>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('edit-modal')">Cancelar</button>
+      <button class="btn-save" onclick="saveEditTip()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://acnzhwfkwrtrmkanwbtp.supabase.co';
+const SUPABASE_KEY='sb_publishable_BC5a1ZI6M6-UnS_QYZN3Kg_dyVm1Ogg';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storage:window.sessionStorage,persistSession:true,autoRefreshToken:true}});
+const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+let tips=[],mems=[],chartMode='monthly',chartInst=null,editingId=null,currentUser=null;
+
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtDate(str){const d=new Date(str+'T00:00:00');return`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
+function showToast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.style.background=isError?'#E24B4A':'#1D9E75';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function showApp(user){
+  currentUser=user;
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('auth-wrap').style.display='none';
+  document.getElementById('app-wrap').classList.add('visible');
+  document.getElementById('user-email').textContent=user.email;
+  loadNombre(user.id);
+  setTimeout(checkPerfil, 1500);
+  document.getElementById('f-date').value=today();
+  const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
+  
+  loadAll();
+}
+function showAuth(){
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('auth-wrap').style.display='flex';
+  document.getElementById('app-wrap').classList.remove('visible');
+}
+function showLogin(){document.getElementById('login-form').style.display='block';document.getElementById('register-form').style.display='none';document.getElementById('forgot-form').style.display='none';document.getElementById('login-msg').className='auth-msg';}
+function showRegister(){document.getElementById('login-form').style.display='none';document.getElementById('register-form').style.display='block';document.getElementById('forgot-form').style.display='none';document.getElementById('register-msg').className='auth-msg';}
+function showForgotPassword(){document.getElementById('login-form').style.display='none';document.getElementById('register-form').style.display='none';document.getElementById('forgot-form').style.display='block';document.getElementById('forgot-msg').className='auth-msg';}
+
+async function sendPasswordReset(){
+  const email=document.getElementById('fp-email').value.trim();
+  const msg=document.getElementById('forgot-msg');
+  if(!email){msg.className='auth-msg error';msg.textContent='Escribe tu correo electrónico.';return;}
+  const btn=document.querySelector('#forgot-form .btn-auth');
+  btn.disabled=true;btn.textContent='Enviando...';
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+  btn.disabled=false;btn.textContent='Enviar enlace de recuperación';
+  if(error){msg.className='auth-msg error';msg.textContent='No se pudo enviar el correo. Intenta de nuevo.';return;}
+  msg.className='auth-msg success';msg.textContent='✓ Si ese correo tiene una cuenta, te enviamos un enlace para restablecer la contraseña. Revisa tu bandeja (y spam).';
+}
+
+function showSetNewPassword(){
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('auth-wrap').style.display='none';
+  document.getElementById('app-wrap').classList.remove('visible');
+  document.getElementById('recovery-wrap').style.display='flex';
+}
+
+async function updatePasswordRecovery(){
+  const pass=document.getElementById('rec-pass').value;
+  const pass2=document.getElementById('rec-pass2').value;
+  const msg=document.getElementById('recovery-msg');
+  if(!pass||!pass2){msg.className='auth-msg error';msg.textContent='Completa ambos campos.';return;}
+  if(pass.length<6){msg.className='auth-msg error';msg.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  if(pass!==pass2){msg.className='auth-msg error';msg.textContent='Las contraseñas no coinciden.';return;}
+  const btn=document.querySelector('#recovery-wrap .btn-auth');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{error}=await sb.auth.updateUser({password:pass});
+  btn.disabled=false;btn.textContent='Guardar nueva contraseña';
+  if(error){msg.className='auth-msg error';msg.textContent=error.message;return;}
+  msg.className='auth-msg success';msg.textContent='✓ Contraseña actualizada. Vuelve a iniciar sesión con tu nueva contraseña.';
+  setTimeout(async()=>{
+    window.location.hash='';
+    document.getElementById('recovery-wrap').style.display='none';
+    await sb.auth.signOut();
+    showAuth();
+  },2000);
+}
+
+async function login(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const msg=document.getElementById('login-msg');
+  if(!email||!pass){msg.className='auth-msg error';msg.textContent='Completa todos los campos.';return;}
+  const btn=document.querySelector('#login-form .btn-auth');
+  btn.disabled=true;btn.textContent='Entrando...';
+  const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='Entrar';
+  if(error){msg.className='auth-msg error';msg.textContent='Correo o contraseña incorrectos.';return;}
+  showApp(data.user);
+}
+async function register(){
+  const nombre=document.getElementById('r-nombre').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  const msg=document.getElementById('register-msg');
+  if(!nombre||!email||!pass||!pass2){msg.className='auth-msg error';msg.textContent='Completa todos los campos.';return;}
+  if(pass.length<6){msg.className='auth-msg error';msg.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  if(pass!==pass2){msg.className='auth-msg error';msg.textContent='Las contraseñas no coinciden.';return;}
+  const btn=document.querySelector('#register-form .btn-auth');
+  btn.disabled=true;btn.textContent='Creando cuenta...';
+  const{data,error}=await sb.auth.signUp({email,password:pass});
+  btn.disabled=false;btn.textContent='Crear cuenta';
+  if(error){msg.className='auth-msg error';msg.textContent=error.message;return;}
+  if(data.user){
+    await sb.from('perfiles').insert([{user_id:data.user.id,nombre}]);
+    if(data.session){showApp(data.user);}
+    else{msg.className='auth-msg success';msg.textContent='✓ Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.';}
+  }
+}
+async function logout(){await sb.auth.signOut();tips=[];mems=[];currentUser=null;showAuth();}
+
+function openSettings(){
+  document.getElementById('settings-current-email').textContent = currentUser.email;
+  document.getElementById('settings-new-email').value = '';
+  document.getElementById('settings-new-pass').value = '';
+  document.getElementById('settings-new-pass2').value = '';
+  document.getElementById('settings-email-msg').className = 'auth-msg';
+  document.getElementById('settings-pass-msg').className = 'auth-msg';
+  document.getElementById('settings-modal').classList.add('visible');
+}
+
+function closeSettings(){
+  document.getElementById('settings-modal').classList.remove('visible');
+}
+
+async function updateEmailSettings(){
+  const newEmail = document.getElementById('settings-new-email').value.trim();
+  const msg = document.getElementById('settings-email-msg');
+  if(!newEmail){ msg.className='auth-msg error'; msg.textContent='Escribe el nuevo correo.'; return; }
+  const btn = document.getElementById('btn-update-email');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const{error}=await sb.auth.updateUser({email:newEmail});
+  btn.disabled=false; btn.textContent='Actualizar correo';
+  if(error){ msg.className='auth-msg error'; msg.textContent=error.message; return; }
+  msg.className='auth-msg success';
+  msg.textContent='✓ Te enviamos un correo de confirmación a la nueva dirección (y puede que también a la actual). El cambio se aplica solo después de confirmar desde ese correo.';
+}
+
+async function updatePasswordSettings(){
+  const pass = document.getElementById('settings-new-pass').value;
+  const pass2 = document.getElementById('settings-new-pass2').value;
+  const msg = document.getElementById('settings-pass-msg');
+  if(!pass||!pass2){ msg.className='auth-msg error'; msg.textContent='Completa ambos campos.'; return; }
+  if(pass.length<6){ msg.className='auth-msg error'; msg.textContent='La contraseña debe tener al menos 6 caracteres.'; return; }
+  if(pass!==pass2){ msg.className='auth-msg error'; msg.textContent='Las contraseñas no coinciden.'; return; }
+  const btn = document.getElementById('btn-update-pass');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const{error}=await sb.auth.updateUser({password:pass});
+  btn.disabled=false; btn.textContent='Actualizar contraseña';
+  if(error){ msg.className='auth-msg error'; msg.textContent=error.message; return; }
+  msg.className='auth-msg success';
+  msg.textContent='✓ Contraseña actualizada correctamente.';
+  document.getElementById('settings-new-pass').value='';
+  document.getElementById('settings-new-pass2').value='';
+}
+
+
+
+
+// COBROS
+let cobrosHistory = [];
+
+async function loadCobros() {
+  try {
+    const { data } = await sb.from('cobros').select('*').eq('user_id', currentUser.id).order('cobrado_en', { ascending: false });
+    cobrosHistory = data || [];
+    renderCobros();
+    updateCobro();
+  } catch(e) {}
+}
+
+function renderCobros() {
+  const wrap = document.getElementById('historial-cobros-wrap');
+  const emptyMsg = document.getElementById('cobros-empty-msg');
+  if (!cobrosHistory.length) {
+    wrap.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    return;
+  }
+  wrap.style.display = 'block';
+  if (emptyMsg) emptyMsg.style.display = 'none';
+  const tbody = document.getElementById('cobros-body');
+  tbody.innerHTML = cobrosHistory.map(c => {
+    const inicio = new Date(c.periodo_inicio + 'T00:00:00');
+    const fin = new Date(c.periodo_fin + 'T00:00:00');
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const periodoLabel = inicio.getDate() + ' ' + meses[inicio.getMonth()] + ' — ' + fin.getDate() + ' ' + meses[fin.getMonth()] + ' ' + fin.getFullYear();
+    const fechaCobro = new Date(c.cobrado_en);
+    const fechaLabel = fechaCobro.getDate() + ' ' + meses[fechaCobro.getMonth()] + ' ' + fechaCobro.getFullYear();
+    const tipoInfo = c.tipo === 'propinas' ? { label: '💵 Propinas', cls: 'tipo-cobro-propinas' }
+                    : c.tipo === 'membresias' ? { label: '🏆 Membresías', cls: 'tipo-cobro-membresias' }
+                    : { label: '📦 Total', cls: 'tipo-cobro-total' };
+    return `<tr>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border)"><span class="${tipoInfo.cls}">${tipoInfo.label}</span></td>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px">${periodoLabel}</td>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px"><span class="date-badge">${fechaLabel}</span></td>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:14px;font-weight:700;color:var(--green)">$${parseFloat(c.monto).toFixed(2)}</td>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--green)">✓ Pagado</td>
+      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);text-align:center">
+        <button onclick="if(confirm('¿Deshacer este cobro de \$${parseFloat(c.monto).toFixed(2)}? Volverá a aparecer como pendiente.')) undoCobro('${c.id}')" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">↩ Deshacer</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let cobroEnProceso = { propinas: false, membresias: false };
+async function confirmarCobro(tipo) {
+  const isProp = tipo === 'propinas';
+  if (cobroEnProceso[tipo]) {
+    showToast('Ya se está procesando ese cobro, espera un momento', true);
+    return;
+  }
+  const footer = document.getElementById(isProp ? 'cobro-footer-prop' : 'cobro-footer-mem');
+  const periodoEl = document.getElementById(isProp ? 'cobro-periodo-prop' : 'cobro-periodo-mem');
+  const pendiente = parseFloat(footer.dataset.pendiente || '0');
+  const periodo = periodoEl.textContent.replace('Período: ', '');
+  if (!pendiente || pendiente <= 0) {
+    showToast('No tienes nada pendiente por cobrar', true);
+    return;
+  }
+  const etiqueta = isProp ? 'tus propinas' : 'tus membresías';
+  const confirmado = confirm(`¿Confirmas que ya recibiste el pago de ${etiqueta} por $${pendiente.toFixed(2)}?
+
+Período: ${periodo}
+
+Si te siguen pagando más adelante en este mismo período, lo nuevo se irá acumulando como pendiente y podrás confirmarlo de nuevo.`);
+  if (!confirmado) return;
+
+  // Revisamos de nuevo justo antes de guardar, por si ya se confirmó mientras el cuadro de diálogo estaba abierto
+  const pendienteActual = parseFloat(footer.dataset.pendiente || '0');
+  if (cobroEnProceso[tipo] || !pendienteActual || pendienteActual <= 0) {
+    showToast('Ese cobro ya fue registrado', true);
+    updateCobro();
+    return;
+  }
+  cobroEnProceso[tipo] = true;
+
+  const { inicio, fin } = isProp ? getPeriodo(userCiclo) : getPeriodo('mensual');
+  const btn = document.getElementById(isProp ? 'btn-ya-cobre-prop' : 'btn-ya-cobre-mem');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  const { data, error } = await sb.from('cobros').insert([{
+    user_id: currentUser.id,
+    tipo: tipo,
+    periodo_inicio: inicio.toISOString().slice(0,10),
+    periodo_fin: fin.toISOString().slice(0,10),
+    monto: pendienteActual
+  }]).select();
+
+  cobroEnProceso[tipo] = false;
+  if (btn) { btn.disabled = false; btn.textContent = isProp ? '✓ Ya cobré propinas' : '✓ Ya cobré membresías'; }
+
+  if (error) { showToast('Error al registrar cobro', true); return; }
+
+  const newCobro = { id: data?.[0]?.id, tipo, periodo_inicio: inicio.toISOString().slice(0,10), periodo_fin: fin.toISOString().slice(0,10), monto: pendienteActual, cobrado_en: new Date().toISOString() };
+  cobrosHistory.unshift(newCobro);
+  renderCobros();
+  updateCobro();
+  showUndoToast(newCobro);
+}
+
+let undoTimer = null;
+function showUndoToast(cobro) {
+  const t = document.getElementById('toast');
+  let seconds = 10;
+  t.innerHTML = `✓ Cobro registrado &nbsp; <button onclick="undoCobro('${cobro.id}')" style="background:rgba(255,255,255,0.25);border:none;border-radius:4px;padding:2px 10px;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Deshacer (${seconds}s)</button>`;
+  t.style.background = '#1D9E75';
+  t.classList.add('show');
+  if (undoTimer) clearInterval(undoTimer);
+  undoTimer = setInterval(() => {
+    seconds--;
+    const btn = t.querySelector('button');
+    if (btn) btn.textContent = `Deshacer (${seconds}s)`;
+    if (seconds <= 0) {
+      clearInterval(undoTimer);
+      t.classList.remove('show');
+      t.innerHTML = '';
+    }
+  }, 1000);
+}
+
+async function undoCobro(cobroId) {
+  if (undoTimer) clearInterval(undoTimer);
+  const t = document.getElementById('toast');
+  t.classList.remove('show');
+  if (!cobroId || cobroId === 'undefined') {
+    const last = cobrosHistory[0];
+    if (!last) return;
+    cobrosHistory.shift();
+  } else {
+    await sb.from('cobros').delete().eq('id', cobroId);
+    cobrosHistory = cobrosHistory.filter(c => c.id !== cobroId);
+  }
+  renderCobros();
+  updateCobro();
+  showToast('↩ Cobro deshecho');
+}
+
+async function checkPerfil() {
+  try {
+    const { data } = await sb.from('perfiles').select('nombre').eq('user_id', currentUser.id).maybeSingle();
+    if (!data) {
+      const nombre = prompt('¡Bienvenido! ¿Cuál es tu nombre?');
+      if (nombre && nombre.trim()) {
+        await sb.from('perfiles').insert([{ user_id: currentUser.id, nombre: nombre.trim() }]);
+        document.getElementById('user-email').textContent = nombre.trim();
+      }
+    }
+  } catch(e) {}
+}
+
+async function loadNombre(userId) {
+  try {
+    const { data } = await sb.from('perfiles').select('nombre').eq('user_id', userId).maybeSingle();
+    if (data && data.nombre) {
+      document.getElementById('user-email').textContent = data.nombre;
+    }
+  } catch(e) {}
+}
+
+async function loadAll(){
+  const[{data:td},{data:md}]=await Promise.all([
+    sb.from('propinas').select('*').eq('user_id',currentUser.id).order('date',{ascending:false}),
+    sb.from('membresias').select('*').eq('user_id',currentUser.id).order('fecha',{ascending:false})
+  ]);
+  tips=td||[];mems=md||[];
+  updateYearFilters();renderTips();renderMems();updateGrand();updateChart();
+  await loadCiclo();
+  await loadCobros();
+  await loadMeta();
+  checkAdmin();
+}
+
+// TIPS
+async function addTip(){
+  const name=document.getElementById('f-name').value.trim();
+  const date=document.getElementById('f-date').value;
+  const amount=parseFloat(document.getElementById('f-amount').value);
+  const note=document.getElementById('f-note').value.trim();
+  const err=document.getElementById('form-error');
+  if(!name||!date||isNaN(amount)||amount<=0){err.style.display='inline';return;}
+  err.style.display='none';
+  const btn=document.getElementById('btn-add');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{data,error}=await sb.from('propinas').insert([{user_id:currentUser.id,name,date,amount,note}]).select();
+  btn.disabled=false;btn.textContent='+ Agregar';
+  if(error){showToast('Error al guardar',true);return;}
+  tips.unshift(data[0]);
+  document.getElementById('f-name').value='';document.getElementById('f-amount').value='';
+  document.getElementById('f-note').value='';document.getElementById('f-date').value=today();
+  const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
+  updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
+  showToast('✓ Propina guardada');
+}
+async function deleteTip(id){
+  if(!confirm('¿Eliminar esta propina?'))return;
+  const{error}=await sb.from('propinas').delete().eq('id',id);
+  if(error){showToast('Error al eliminar',true);return;}
+  tips=tips.filter(t=>t.id!==id);
+  updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
+  showToast('Propina eliminada');
+}
+function openEditTip(id){
+  const t=tips.find(x=>x.id===id);if(!t)return;
+  editingId=id;
+  document.getElementById('e-name').value=t.name;
+  document.getElementById('e-date').value=t.date;
+  document.getElementById('e-amount').value=t.amount;
+  document.getElementById('e-note').value=t.note||'';
+  document.getElementById('edit-error').style.display='none';
+  document.getElementById('edit-modal').classList.add('open');
+}
+async function saveEditTip(){
+  const name=document.getElementById('e-name').value.trim();
+  const date=document.getElementById('e-date').value;
+  const amount=parseFloat(document.getElementById('e-amount').value);
+  const note=document.getElementById('e-note').value.trim();
+  const err=document.getElementById('edit-error');
+  if(!name||!date||isNaN(amount)||amount<=0){err.style.display='block';return;}
+  err.style.display='none';
+  const{error}=await sb.from('propinas').update({name,date,amount,note}).eq('id',editingId);
+  if(error){showToast('Error al actualizar',true);return;}
+  const idx=tips.findIndex(t=>t.id===editingId);
+  if(idx!==-1)tips[idx]={...tips[idx],name,date,amount,note};
+  updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
+  closeModal('edit-modal');showToast('✓ Propina actualizada');
+}
+document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal('edit-modal');});
+
+function renderTips(){
+  const fy=document.getElementById('fil-year').value;
+  const fm=document.getElementById('fil-month').value;
+  const fs=document.getElementById('fil-search').value.trim().toLowerCase();
+  const list=tips.filter(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    if(fy&&String(d.getFullYear())!==fy)return false;
+    if(fm&&String(d.getMonth()+1)!==fm)return false;
+    if(fs&&!t.name.toLowerCase().includes(fs))return false;
+    return true;
+  });
+  const total=tips.reduce((s,t)=>s+parseFloat(t.amount),0);
+  document.getElementById('tip-section-total').textContent='$'+total.toFixed(2);
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
+  document.getElementById('m-month').textContent='$'+tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0).toFixed(2);
+  document.getElementById('m-year').textContent='$'+tips.filter(t=>new Date(t.date+'T00:00:00').getFullYear()===curY).reduce((s,t)=>s+parseFloat(t.amount),0).toFixed(2);
+  document.getElementById('m-count').textContent=tips.length;
+  const filteredTotal=list.reduce((s,t)=>s+parseFloat(t.amount),0);
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let filtroLabel='';
+  if(fy&&fm) filtroLabel=`en ${meses[parseInt(fm)-1]} ${fy}`;
+  else if(fy) filtroLabel=`en ${fy}`;
+  else if(fm) filtroLabel=`en ${meses[parseInt(fm)-1]} (todos los años)`;
+  document.getElementById('tip-filtered-summary').textContent = filtroLabel
+    ? `Mostrando ${list.length} propina${list.length===1?'':'s'} ${filtroLabel} · Total: $${filteredTotal.toFixed(2)}`
+    : (fs ? `${list.length} resultado${list.length===1?'':'s'} para "${fs}" · Total: $${filteredTotal.toFixed(2)}` : '');
+  const tbody=document.getElementById('tip-body');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🧾</div>Sin propinas aún.</div></td></tr>`;return;}
+  tbody.innerHTML=list.map(t=>`<tr>
+    <td style="font-weight:600">${t.name}</td>
+    <td><span class="date-badge">${fmtDate(t.date)}</span></td>
+    <td class="amount">$${parseFloat(t.amount).toFixed(2)}</td>
+    <td class="note-text">${t.note||'—'}</td>
+    <td><div class="action-btns">
+      <button class="btn-edit" onclick="openEditTip('${t.id}')" title="Editar">✏️</button>
+      <button class="btn-del" onclick="deleteTip('${t.id}')" title="Eliminar">🗑</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// MEMS
+
+function getMesActual(){
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const now=new Date();
+  return meses[now.getMonth()]+' '+now.getFullYear();
+}
+
+function updateMonto(){document.getElementById('m-monto').value=document.getElementById('m-tipo').value==='PRO'?'10.00':'30.00';}
+async function addMembresia(){
+  const tipo=document.getElementById('m-tipo').value;
+  const now=new Date();
+  const fecha=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  const monto=tipo==='PRO'?10:30;
+  const nota='';
+  const err=document.getElementById('mem-error');
+  err.style.display='none';
+  const btn=document.getElementById('btn-add-mem');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{data,error}=await sb.from('membresias').insert([{user_id:currentUser.id,tipo,fecha,monto,nota}]).select();
+  btn.disabled=false;btn.textContent='+ Registrar';
+  if(error){showToast('Error al guardar',true);return;}
+  mems.unshift(data[0]);
+  updateYearFilters();renderMems();updateGrand();updateChart();updateCobro();
+  showToast('✓ Membresía '+tipo+' registrada para '+getMesActual());
+}
+async function deleteMem(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  const{error}=await sb.from('membresias').delete().eq('id',id);
+  if(error){showToast('Error al eliminar',true);return;}
+  mems=mems.filter(m=>m.id!==id);
+  updateYearFilters();renderMems();updateGrand();updateChart();updateCobro();
+  showToast('Registro eliminado');
+}
+function renderMems(){
+  const fy=document.getElementById('mfil-year').value;
+  const fm=document.getElementById('mfil-month').value;
+  const ft=document.getElementById('mfil-tipo').value;
+  const list=mems.filter(m=>{
+    const d=new Date(m.fecha+'T00:00:00');
+    if(fy&&String(d.getFullYear())!==fy)return false;
+    if(fm&&String(d.getMonth()+1)!==fm)return false;
+    if(ft&&m.tipo!==ft)return false;
+    return true;
+  });
+  const total=mems.reduce((s,m)=>s+parseFloat(m.monto),0);
+  document.getElementById('mem-section-total').textContent='$'+total.toFixed(2);
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
+  document.getElementById('mm-month').textContent='$'+mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0).toFixed(2);
+  document.getElementById('mm-pro').textContent=mems.filter(m=>m.tipo==='PRO').length;
+  document.getElementById('mm-premium').textContent=mems.filter(m=>m.tipo==='PREMIUM').length;
+  const tbody=document.getElementById('mem-body');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏆</div>Sin membresías aún.</div></td></tr>`;return;}
+  tbody.innerHTML=list.map(m=>{
+    const d=new Date(m.fecha+'T00:00:00');
+    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const mesLabel=meses[d.getMonth()]+' '+d.getFullYear();
+    return`<tr>
+    <td><span class="${m.tipo==='PRO'?'tipo-pro':'tipo-premium'}">${m.tipo}</span></td>
+    <td><span class="date-badge">${mesLabel}</span></td>
+    <td class="amount">$${parseFloat(m.monto).toFixed(2)}</td>
+    <td><button class="btn-del" onclick="deleteMem('${m.id}')" title="Eliminar">🗑</button></td>
+  </tr>`;}).join('');
+}
+
+function updateGrand(){
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
+  const totalTips=tips.reduce((s,t)=>s+parseFloat(t.amount),0);
+  const totalMems=mems.reduce((s,m)=>s+parseFloat(m.monto),0);
+  const grand=totalTips+totalMems;
+  const monthTips=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
+  const monthMems=mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
+  const yearTips=tips.filter(t=>new Date(t.date+'T00:00:00').getFullYear()===curY).reduce((s,t)=>s+parseFloat(t.amount),0);
+  const yearMems=mems.filter(m=>new Date(m.fecha+'T00:00:00').getFullYear()===curY).reduce((s,m)=>s+parseFloat(m.monto),0);
+  document.getElementById('grand-total').textContent='$'+grand.toFixed(2);
+  document.getElementById('grand-month').textContent='$'+(monthTips+monthMems).toFixed(2);
+  document.getElementById('grand-year').textContent='$'+(yearTips+yearMems).toFixed(2);
+  document.getElementById('grand-count').textContent=tips.length+mems.length;
+  updateStats();
+  renderMeta();
+}
+
+function updateStats(){
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
+  const tipsEsteMes=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;});
+  const promedio=tipsEsteMes.length?tipsEsteMes.reduce((s,t)=>s+parseFloat(t.amount),0)/tipsEsteMes.length:0;
+  document.getElementById('stat-promedio').textContent='$'+promedio.toFixed(2);
+
+  const diasSemana=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const porDia={};
+  tips.forEach(t=>{
+    const dow=new Date(t.date+'T00:00:00').getDay();
+    if(!porDia[dow])porDia[dow]={total:0,count:0};
+    porDia[dow].total+=parseFloat(t.amount);
+    porDia[dow].count++;
+  });
+  let mejorDia=null,mejorProm=0;
+  Object.keys(porDia).forEach(dow=>{
+    const prom=porDia[dow].total/porDia[dow].count;
+    if(prom>mejorProm){mejorProm=prom;mejorDia=dow;}
+  });
+  document.getElementById('stat-mejor-dia').textContent = mejorDia!==null ? `${diasSemana[mejorDia]} (prom. $${mejorProm.toFixed(2)})` : '—';
+}
+
+let metaMensual=0;
+async function loadMeta(){
+  try{
+    const{data}=await sb.from('configuracion').select('meta_mensual').eq('user_id',currentUser.id).maybeSingle();
+    metaMensual=(data&&data.meta_mensual)?parseFloat(data.meta_mensual):0;
+    document.getElementById('meta-input').value=metaMensual||'';
+  }catch(e){}
+  renderMeta();
+}
+
+async function saveMeta(){
+  const val=parseFloat(document.getElementById('meta-input').value);
+  if(!val||val<=0){showToast('Escribe una meta válida',true);return;}
+  metaMensual=val;
+  await sb.from('configuracion').upsert({user_id:currentUser.id,meta_mensual:val},{onConflict:'user_id'});
+  showToast('✓ Meta guardada');
+  renderMeta();
+}
+
+function renderMeta(){
+  const wrap=document.getElementById('meta-progress-wrap');
+  const empty=document.getElementById('meta-empty-msg');
+  if(!wrap||!empty)return;
+  if(!metaMensual||metaMensual<=0){
+    wrap.style.display='none';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  wrap.style.display='block';
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
+  const monthTips=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
+  const monthMems=mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
+  const actual=monthTips+monthMems;
+  const pct=Math.min(100,Math.round((actual/metaMensual)*100));
+  document.getElementById('meta-actual').textContent='$'+actual.toFixed(2);
+  document.getElementById('meta-objetivo').textContent='de $'+metaMensual.toFixed(2);
+  document.getElementById('meta-bar').style.width=pct+'%';
+  const msg=document.getElementById('meta-msg');
+  msg.textContent = pct>=100 ? '🎉 ¡Alcanzaste tu meta este mes!' : pct+'% completado · faltan $'+Math.max(0,metaMensual-actual).toFixed(2);
+}
+
+function updateYearFilters(){
+  const tipYears=[...new Set(tips.map(t=>t.date.slice(0,4)))].sort((a,b)=>b-a);
+  const memYears=[...new Set(mems.map(m=>m.fecha.slice(0,4)))].sort((a,b)=>b-a);
+  const s1=document.getElementById('fil-year'),c1=s1.value;
+  s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
+  const s2=document.getElementById('mfil-year'),c2=s2.value;
+  s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
+}
+
+function setChart(mode,btn){
+  chartMode=mode;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');updateChart();
+}
+function updateChart(){
+  const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
+  let labels=[],dataTips=[],dataPro=[],dataPremium=[];
+  if(chartMode==='monthly'){
+    const year=new Date().getFullYear();
+    labels=MONTHS;
+    dataTips=MONTHS.map((_,i)=>tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===i;}).reduce((s,t)=>s+parseFloat(t.amount),0));
+    dataPro=MONTHS.map((_,i)=>mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===i&&m.tipo==='PRO';}).reduce((s,m)=>s+parseFloat(m.monto),0));
+    dataPremium=MONTHS.map((_,i)=>mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===i&&m.tipo==='PREMIUM';}).reduce((s,m)=>s+parseFloat(m.monto),0));
+  } else if(chartMode==='daily'){
+    const now=new Date();
+    const year=now.getFullYear();
+    const month=now.getMonth();
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    labels=Array.from({length:daysInMonth},(_,i)=>String(i+1));
+    dataTips=labels.map((_,i)=>tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===month&&d.getDate()===i+1;}).reduce((s,t)=>s+parseFloat(t.amount),0));
+    dataPro=labels.map((_,i)=>mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===month&&d.getDate()===i+1&&m.tipo==='PRO';}).reduce((s,m)=>s+parseFloat(m.monto),0));
+    dataPremium=labels.map((_,i)=>mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===month&&d.getDate()===i+1&&m.tipo==='PREMIUM';}).reduce((s,m)=>s+parseFloat(m.monto),0));
+  } else {
+    const allYears=[...new Set([...tips.map(t=>t.date.slice(0,4)),...mems.map(m=>m.fecha.slice(0,4))])].sort();
+    labels=allYears.length?allYears:[String(new Date().getFullYear())];
+    dataTips=labels.map(y=>tips.filter(t=>t.date.startsWith(y)).reduce((s,t)=>s+parseFloat(t.amount),0));
+    dataPro=labels.map(y=>mems.filter(m=>m.fecha.startsWith(y)&&m.tipo==='PRO').reduce((s,m)=>s+parseFloat(m.monto),0));
+    dataPremium=labels.map(y=>mems.filter(m=>m.fecha.startsWith(y)&&m.tipo==='PREMIUM').reduce((s,m)=>s+parseFloat(m.monto),0));
+  }
+  if(chartInst)chartInst.destroy();
+  chartInst=new Chart(document.getElementById('mainChart').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Propinas',data:dataTips,backgroundColor:isDark?'rgba(29,158,117,0.7)':'rgba(29,158,117,0.6)',borderColor:'#1D9E75',borderWidth:1.5,borderRadius:4,borderSkipped:false},
+      {label:'Pro',data:dataPro,backgroundColor:isDark?'rgba(24,95,165,0.7)':'rgba(24,95,165,0.6)',borderColor:'#185FA5',borderWidth:1.5,borderRadius:4,borderSkipped:false},
+      {label:'Premium',data:dataPremium,backgroundColor:isDark?'rgba(186,117,23,0.7)':'rgba(186,117,23,0.6)',borderColor:'#BA7517',borderWidth:1.5,borderRadius:4,borderSkipped:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' $'+c.parsed.y.toFixed(2)}}},
+      scales:{
+        x:{ticks:{color:isDark?'#8a8a85':'#888780',font:{size:11},autoSkip:false,maxRotation:0},grid:{display:false},border:{color:'transparent'}},
+        y:{ticks:{color:isDark?'#8a8a85':'#888780',font:{size:11},callback:v=>'$'+v},grid:{color:isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)'},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+
+
+// ADMIN & PWA
+let isAdmin = false;
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('✓ App instalada correctamente');
+});
+
+async function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') showToast('✓ Instalando app...');
+  } else {
+    showToast('Para instalar: menú del navegador → "Agregar a pantalla de inicio"');
+  }
+}
+
+
+async function adminRevertirCobro(cobroId, nombre) {
+  if (!confirm(`¿Revertir el cobro de ${nombre}?\n\nEsto eliminará ese registro y el período volverá a aparecer como pendiente para esa persona.`)) return;
+  const { error } = await sb.from('cobros').delete().eq('id', cobroId);
+  if (error) { showToast('Error al revertir', true); return; }
+  showToast('✓ Cobro revertido para ' + nombre);
+  loadAdminData();
+}
+
+async function checkAdmin() {
+  try {
+    const { data } = await sb.from('admins').select('id').eq('user_id', currentUser.id).maybeSingle();
+    isAdmin = !!data;
+    const btn = document.getElementById('btn-admin');
+    if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
+  } catch(e) { isAdmin = false; }
+}
+
+function showAdminPanel() {
+  document.getElementById('app-wrap').classList.remove('visible');
+  document.getElementById('admin-wrap').classList.add('visible');
+  loadAdminData();
+}
+
+function showUserPanel() {
+  document.getElementById('admin-wrap').classList.remove('visible');
+  document.getElementById('app-wrap').classList.add('visible');
+}
+
+async function loadAdminData() {
+  showToast('Cargando datos del equipo...');
+  const [{ data: allTips }, { data: allMems }, { data: allUsers }] = await Promise.all([
+    sb.from('propinas').select('*').order('date', { ascending: false }),
+    sb.from('membresias').select('*').order('fecha', { ascending: false }),
+    sb.from('admins').select('user_id')
+  ]);
+
+  const { data: users } = await sb.auth.admin ? 
+    { data: [] } : 
+    sb.from('propinas').select('user_id').then(r => ({ data: [...new Set((r.data||[]).map(x=>x.user_id))] }));
+
+  const tips = allTips || [];
+  const mems = allMems || [];
+  const now = new Date();
+  const curM = now.getMonth()+1, curY = now.getFullYear();
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  const totalTips = tips.reduce((s,t)=>s+parseFloat(t.amount),0);
+  const totalMems = mems.reduce((s,m)=>s+parseFloat(m.monto),0);
+  const monthTips = tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
+  const monthMems = mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
+
+  document.getElementById('adm-total').textContent = '$'+(totalTips+totalMems).toFixed(2);
+  document.getElementById('adm-month').textContent = '$'+(monthTips+monthMems).toFixed(2);
+  document.getElementById('adm-tips').textContent = '$'+totalTips.toFixed(2);
+  document.getElementById('adm-mems').textContent = '$'+totalMems.toFixed(2);
+  document.getElementById('adm-pro').textContent = mems.filter(m=>m.tipo==='PRO').length;
+  document.getElementById('adm-premium').textContent = mems.filter(m=>m.tipo==='PREMIUM').length;
+  document.getElementById('adm-mes-label').textContent = meses[curM-1] + ' ' + curY;
+  document.getElementById('admin-periodo-badge').textContent = meses[curM-1] + ' ' + curY;
+
+  // Build ranking by user
+  const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
+  document.getElementById('adm-users').textContent = userIds.length;
+
+  // Fetch nombres
+  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre');
+  const nombresMap = {};
+  (perfilesData||[]).forEach(p => nombresMap[p.user_id] = p.nombre);
+
+  const ranking = userIds.map(uid => {
+    const myTips = tips.filter(t=>t.user_id===uid&&new Date(t.date+'T00:00:00').getMonth()+1===curM&&new Date(t.date+'T00:00:00').getFullYear()===curY);
+    const myMems = mems.filter(m=>m.user_id===uid&&new Date(m.fecha+'T00:00:00').getMonth()+1===curM&&new Date(m.fecha+'T00:00:00').getFullYear()===curY);
+    const tipsTotal = myTips.reduce((s,t)=>s+parseFloat(t.amount),0);
+    const pro = myMems.filter(m=>m.tipo==='PRO').length;
+    const premium = myMems.filter(m=>m.tipo==='PREMIUM').length;
+    const nombre = nombresMap[uid] || uid.slice(0,8)+'...';
+    return { uid, tipsTotal, tips: myTips.length, pro, premium, nombre };
+  }).sort((a,b) => b.tipsTotal - a.tipsTotal);
+
+  const maxTotal = ranking[0]?.tipsTotal || 1;
+  const posClasses = ['pos-1','pos-2','pos-3'];
+  const medals = ['🥇','🥈','🥉'];
+
+  const rankingHTML = ranking.map((r, i) => {
+    const pct = Math.round((r.tipsTotal / maxTotal) * 100);
+    const posClass = i < 3 ? posClasses[i] : 'pos-other';
+    const label = i < 3 ? medals[i] : (i+1);
+    return `<div class="ranking-row">
+      <div class="ranking-pos ${posClass}">${label}</div>
+      <div class="ranking-info">
+        <div class="ranking-email">${r.nombre}</div>
+        <div class="ranking-sub">${r.tips} propinas este mes · ${r.pro} Pro · ${r.premium} Premium</div>
+        <div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${pct}%"></div></div>
+      </div>
+      <div class="ranking-amount">$${r.tipsTotal.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('ranking-list').innerHTML = rankingHTML || '<div class="empty-state"><div class="empty-icon">📊</div>Sin datos este mes</div>';
+  
+  // Load team cobros
+  const { data: allCobros } = await sb.from('cobros').select('*').order('cobrado_en', { ascending: false });
+  const cobros = allCobros || [];
+  const mesesShort = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const admCobrosBody = document.getElementById('adm-cobros-body');
+  if (!cobros.length) {
+    admCobrosBody.innerHTML = '<tr><td colspan="6" class="empty-state">Sin cobros registrados aún</td></tr>';
+  } else {
+    admCobrosBody.innerHTML = cobros.map(c => {
+      const ini = new Date(c.periodo_inicio+'T00:00:00');
+      const fin2 = new Date(c.periodo_fin+'T00:00:00');
+      const cobradoEn = new Date(c.cobrado_en);
+      const periodoStr = ini.getDate()+' '+mesesShort[ini.getMonth()]+' — '+fin2.getDate()+' '+mesesShort[fin2.getMonth()]+' '+fin2.getFullYear();
+      const cobradoStr = cobradoEn.getDate()+' '+mesesShort[cobradoEn.getMonth()]+' '+cobradoEn.getFullYear();
+      const nombre = nombresMap[c.user_id] || c.user_id.slice(0,8)+'...';
+      const tipoInfo = c.tipo === 'propinas' ? { label: '💵 Propinas', cls: 'tipo-cobro-propinas' }
+                      : c.tipo === 'membresias' ? { label: '🏆 Membresías', cls: 'tipo-cobro-membresias' }
+                      : { label: '📦 Total', cls: 'tipo-cobro-total' };
+      return `<tr>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:600">${nombre}</td>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border)"><span class="${tipoInfo.cls}">${tipoInfo.label}</span></td>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px">${periodoStr}</td>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px"><span class="date-badge">${cobradoStr}</span></td>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:14px;font-weight:700;color:var(--green);text-align:right">$${parseFloat(c.monto).toFixed(2)}</td>
+        <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);text-align:center">
+          <button onclick="adminRevertirCobro('${c.id}','${nombre}')" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">↩ Revertir</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // All records table
+  const allRecords = [
+    ...tips.map(t => ({ uid: t.user_id, tipo: '💵 Propina', detalle: t.name, fecha: t.date, monto: parseFloat(t.amount) })),
+    ...mems.map(m => ({ uid: m.user_id, tipo: m.tipo==='PRO'?'🔵 PRO':'🟡 PREMIUM', detalle: 'Membresía '+m.tipo, fecha: m.fecha, monto: parseFloat(m.monto) }))
+  ].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  const admBody = document.getElementById('adm-all-body');
+  if (!allRecords.length) {
+    admBody.innerHTML = '<tr><td colspan="5" class="empty-state">Sin registros</td></tr>';
+  } else {
+    admBody.innerHTML = allRecords.map(r => `<tr>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${nombresMap[r.uid]||r.uid.slice(0,8)+'...'}</td>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px">${r.tipo}</td>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${r.detalle}</td>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--text2)">${fmtDate(r.fecha)}</td>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:700;color:var(--green);text-align:right">$${r.monto.toFixed(2)}</td>
+    </tr>`).join('');
+  }
+}
+
+// PWA Manifest
+const manifest = {
+  name: "Mis Propinas",
+  short_name: "Propinas",
+  description: "Registra tus propinas y membresías",
+  start_url: "/",
+  display: "standalone",
+  background_color: "#eeede8",
+  theme_color: "#1D9E75",
+  icons: [
+    { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQwIiBmaWxsPSIjMUQ5RTc1Ii8+PHRleHQgeD0iOTYiIHk9IjEzOCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTI4IiBmb250LXdlaWdodD0iOTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+JDwvdGV4dD48L3N2Zz4=", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzFEOUU3NSIvPjx0ZXh0IHg9IjI1NiIgeT0iMzYwIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMjAiIGZvbnQtd2VpZ2h0PSI5MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj4kPC90ZXh0Pjwvc3ZnPg==", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+document.getElementById('manifest-link').href = manifestURL;
+
+// CICLO DE COBRO
+let userCiclo = 'mensual';
+
+function getPeriodo(ciclo) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  const mesesFull = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesesShort = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  let inicio, fin, label;
+  if (ciclo === 'mensual') {
+    inicio = new Date(y, m, 1);
+    fin = new Date(y, m + 1, 0);
+    label = mesesFull[m] + ' ' + y;
+  } else {
+    if (d <= 15) {
+      inicio = new Date(y, m, 1);
+      fin = new Date(y, m, 15);
+      label = '1 — 15 de ' + mesesShort[m] + ' ' + y;
+    } else {
+      inicio = new Date(y, m, 16);
+      fin = new Date(y, m + 1, 0);
+      label = '16 — ' + fin.getDate() + ' de ' + mesesShort[m] + ' ' + y;
+    }
+  }
+  const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const finDia = new Date(fin.getFullYear(), fin.getMonth(), fin.getDate());
+  const diasRestantes = Math.ceil((finDia - hoy) / (1000*60*60*24)) + 1;
+  return { inicio, fin, label, diasRestantes };
+}
+
+function getPeriodoAnterior(ciclo) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  let inicio, fin;
+  if (ciclo === 'mensual') {
+    inicio = new Date(y, m - 1, 1);
+    fin = new Date(y, m, 0);
+  } else {
+    if (d <= 15) {
+      inicio = new Date(y, m - 1, 16);
+      fin = new Date(y, m, 0);
+    } else {
+      inicio = new Date(y, m, 1);
+      fin = new Date(y, m, 15);
+    }
+  }
+  return { inicio, fin };
+}
+
+function updateCobro() {
+  try {
+    // ---- PROPINAS (sigue el ciclo elegido: mensual o quincenal) ----
+    const pp = getPeriodo(userCiclo);
+    const inRangeP = (dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d >= pp.inicio && d <= pp.fin;
+    };
+    const tipsPeriodo = tips.filter(t => inRangeP(t.date)).reduce((s,t) => s+parseFloat(t.amount), 0);
+    const diasLabelProp = pp.diasRestantes + (pp.diasRestantes === 1 ? ' día' : ' días');
+    document.getElementById('cobro-monto-prop').textContent = '$' + tipsPeriodo.toFixed(2);
+    document.getElementById('cobro-periodo-prop').textContent = 'Período: ' + pp.label + ' · ' + diasLabelProp + ' para cobrar';
+    document.getElementById('ciclo-badge').textContent = userCiclo === 'mensual' ? 'Mensual' : 'Quincenal';
+    document.getElementById('ciclo-select').value = userCiclo;
+
+    // Comparación con el período anterior
+    const ppAnt = getPeriodoAnterior(userCiclo);
+    const inRangeAntProp = (dateStr) => { const d = new Date(dateStr + 'T00:00:00'); return d >= ppAnt.inicio && d <= ppAnt.fin; };
+    const tipsAnteriorProp = tips.filter(t => inRangeAntProp(t.date)).reduce((s,t) => s+parseFloat(t.amount), 0);
+    const compProp = document.getElementById('cobro-comparacion-prop');
+    if (tipsAnteriorProp > 0) {
+      const diffProp = tipsPeriodo - tipsAnteriorProp;
+      if (diffProp > 0) compProp.innerHTML = `<span style="color:var(--green)">↑ $${diffProp.toFixed(2)} más</span> que el período anterior`;
+      else if (diffProp < 0) compProp.innerHTML = `<span style="color:var(--red)">↓ $${Math.abs(diffProp).toFixed(2)} menos</span> que el período anterior`;
+      else compProp.innerHTML = 'Igual que el período anterior';
+    } else {
+      compProp.innerHTML = '';
+    }
+
+    // Puede haber varios cobros parciales dentro del mismo período (ej: te pagan, sigues recibiendo propinas, te pagan otra vez)
+    const cobrosPropPeriodo = cobrosHistory.filter(c => c.tipo === 'propinas' && c.periodo_inicio === pp.inicio.toISOString().slice(0,10) && c.periodo_fin === pp.fin.toISOString().slice(0,10));
+    const yaCobradoPropMonto = cobrosPropPeriodo.reduce((s,c) => s + parseFloat(c.monto), 0);
+    const pendienteProp = Math.max(0, tipsPeriodo - yaCobradoPropMonto);
+
+    const footerProp = document.getElementById('cobro-footer-prop');
+    footerProp.dataset.pendiente = pendienteProp.toFixed(2);
+    let htmlProp = '';
+    if (yaCobradoPropMonto > 0) {
+      htmlProp += `<div class="cobro-pagado">✓ Ya cobraste $${yaCobradoPropMonto.toFixed(2)} este período</div>`;
+    }
+    if (pendienteProp > 0) {
+      htmlProp += `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;${yaCobradoPropMonto>0?'margin-top:10px':''}">
+          <div class="cobro-pendiente" style="flex:1;min-width:160px">⏳ Pendiente: $${pendienteProp.toFixed(2)}</div>
+          <button class="btn-ya-cobre" id="btn-ya-cobre-prop" onclick="confirmarCobro('propinas')">✓ Ya cobré propinas</button>
+        </div>`;
+    } else if (yaCobradoPropMonto === 0) {
+      htmlProp = `<div style="font-size:13px;color:var(--text2)">Aún no tienes propinas registradas este período.</div>`;
+    }
+    footerProp.innerHTML = htmlProp;
+
+    // ---- MEMBRESÍAS (siempre mensual, sin importar el ciclo de propinas) ----
+    const pm = getPeriodo('mensual');
+    const inRangeM = (dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d >= pm.inicio && d <= pm.fin;
+    };
+    const proPeriodo = mems.filter(m => m.tipo==='PRO' && inRangeM(m.fecha)).reduce((s,m) => s+parseFloat(m.monto), 0);
+    const premiumPeriodo = mems.filter(m => m.tipo==='PREMIUM' && inRangeM(m.fecha)).reduce((s,m) => s+parseFloat(m.monto), 0);
+    const proCountPeriodo = mems.filter(m => m.tipo==='PRO' && inRangeM(m.fecha)).length;
+    const premiumCountPeriodo = mems.filter(m => m.tipo==='PREMIUM' && inRangeM(m.fecha)).length;
+    const memTotal = proPeriodo + premiumPeriodo;
+    const diasLabelMem = pm.diasRestantes + (pm.diasRestantes === 1 ? ' día' : ' días');
+    document.getElementById('cobro-monto-mem').textContent = '$' + memTotal.toFixed(2);
+    document.getElementById('cobro-periodo-mem').textContent = 'Período: ' + pm.label + ' · ' + diasLabelMem + ' para cobrar';
+    document.getElementById('cobro-pro-mem').textContent = proCountPeriodo + ' ($' + proPeriodo.toFixed(2) + ')';
+    document.getElementById('cobro-premium-mem').textContent = premiumCountPeriodo + ' ($' + premiumPeriodo.toFixed(2) + ')';
+
+    // Comparación con el período anterior (membresías siempre comparan mes vs mes anterior)
+    const pmAnt = getPeriodoAnterior('mensual');
+    const inRangeAntMem = (dateStr) => { const d = new Date(dateStr + 'T00:00:00'); return d >= pmAnt.inicio && d <= pmAnt.fin; };
+    const memAnteriorTotal = mems.filter(m => inRangeAntMem(m.fecha)).reduce((s,m) => s+parseFloat(m.monto), 0);
+    const compMem = document.getElementById('cobro-comparacion-mem');
+    if (memAnteriorTotal > 0) {
+      const diffMem = memTotal - memAnteriorTotal;
+      if (diffMem > 0) compMem.innerHTML = `<span style="color:var(--green)">↑ $${diffMem.toFixed(2)} más</span> que el mes anterior`;
+      else if (diffMem < 0) compMem.innerHTML = `<span style="color:var(--red)">↓ $${Math.abs(diffMem).toFixed(2)} menos</span> que el mes anterior`;
+      else compMem.innerHTML = 'Igual que el mes anterior';
+    } else {
+      compMem.innerHTML = '';
+    }
+
+    const cobrosMemPeriodo = cobrosHistory.filter(c => c.tipo === 'membresias' && c.periodo_inicio === pm.inicio.toISOString().slice(0,10) && c.periodo_fin === pm.fin.toISOString().slice(0,10));
+    const yaCobradoMemMonto = cobrosMemPeriodo.reduce((s,c) => s + parseFloat(c.monto), 0);
+    const pendienteMem = Math.max(0, memTotal - yaCobradoMemMonto);
+
+    const footerMem = document.getElementById('cobro-footer-mem');
+    footerMem.dataset.pendiente = pendienteMem.toFixed(2);
+    let htmlMem = '';
+    if (yaCobradoMemMonto > 0) {
+      htmlMem += `<div class="cobro-pagado">✓ Ya cobraste $${yaCobradoMemMonto.toFixed(2)} este período</div>`;
+    }
+    if (pendienteMem > 0) {
+      htmlMem += `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;${yaCobradoMemMonto>0?'margin-top:10px':''}">
+          <div class="cobro-pendiente" style="flex:1;min-width:160px">⏳ Pendiente: $${pendienteMem.toFixed(2)}</div>
+          <button class="btn-ya-cobre" id="btn-ya-cobre-mem" onclick="confirmarCobro('membresias')">✓ Ya cobré membresías</button>
+        </div>`;
+    } else if (yaCobradoMemMonto === 0) {
+      htmlMem = `<div style="font-size:13px;color:var(--text2)">Aún no tienes membresías registradas este período.</div>`;
+    }
+    footerMem.innerHTML = htmlMem;
+  } catch(e) { console.log('updateCobro error:', e); }
+}
+
+let currentMainTab = 'resumen';
+function showMainTab(name) {
+  currentMainTab = name;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector('.main-tab[data-tab="' + name + '"]').classList.add('active');
+  if (name === 'resumen' && chartInst) {
+    setTimeout(() => chartInst.resize(), 0);
+  }
+}
+
+async function loadCiclo() {
+  try {
+    const { data } = await sb.from('configuracion').select('ciclo').eq('user_id', currentUser.id).maybeSingle();
+    if (data && data.ciclo) {
+      userCiclo = data.ciclo;
+    }
+  } catch(e) {}
+  updateCobro();
+}
+
+async function saveCiclo() {
+  userCiclo = document.getElementById('ciclo-select').value;
+  await sb.from('configuracion').upsert({ user_id: currentUser.id, ciclo: userCiclo }, { onConflict: 'user_id' });
+  updateCobro();
+  showToast('✓ Ciclo de propinas actualizado a ' + (userCiclo === 'mensual' ? 'mensual' : 'quincenal'));
+}
+
+let exportFormat='excel';
+
+function openExportModal(format){
+  exportFormat=format;
+  document.getElementById('export-modal-title').textContent = format==='excel' ? '📊 Exportar a Excel' : '📄 Exportar a PDF';
+  document.getElementById('export-period').value='mes';
+  document.getElementById('export-desde').value='';
+  document.getElementById('export-hasta').value='';
+  toggleExportRange();
+  document.getElementById('export-modal').classList.add('visible');
+}
+
+function closeExportModal(){
+  document.getElementById('export-modal').classList.remove('visible');
+}
+
+function toggleExportRange(){
+  const val=document.getElementById('export-period').value;
+  document.getElementById('export-range-fields').style.display = val==='custom' ? 'flex' : 'none';
+}
+
+function getExportRange(){
+  const val=document.getElementById('export-period').value;
+  const now=new Date();
+  if(val==='mes'){
+    return {inicio:new Date(now.getFullYear(),now.getMonth(),1), fin:new Date(now.getFullYear(),now.getMonth()+1,0), label:'Mes actual'};
+  } else if(val==='anio'){
+    return {inicio:new Date(now.getFullYear(),0,1), fin:new Date(now.getFullYear(),11,31), label:'Año '+now.getFullYear()};
+  } else if(val==='todo'){
+    return {inicio:null, fin:null, label:'Todo el historial'};
+  } else {
+    const desde=document.getElementById('export-desde').value;
+    const hasta=document.getElementById('export-hasta').value;
+    if(!desde||!hasta) return null;
+    return {inicio:new Date(desde+'T00:00:00'), fin:new Date(hasta+'T00:00:00'), label:'Del '+fmtDate(desde)+' al '+fmtDate(hasta)};
+  }
+}
+
+function runExport(){
+  const range=getExportRange();
+  if(!range){ showToast('Selecciona las dos fechas', true); return; }
+  const tipsF=tips.filter(t=>{ if(!range.inicio) return true; const d=new Date(t.date+'T00:00:00'); return d>=range.inicio && d<=range.fin; });
+  const memsF=mems.filter(m=>{ if(!range.inicio) return true; const d=new Date(m.fecha+'T00:00:00'); return d>=range.inicio && d<=range.fin; });
+  if(!tipsF.length && !memsF.length){ showToast('No hay datos en ese período', true); return; }
+  closeExportModal();
+  if(exportFormat==='excel') exportExcelFiltered(tipsF, memsF, range.label);
+  else exportPDFFiltered(tipsF, memsF, range.label);
+}
+
+async function downloadWorkbook(wb, filename){
+  const buffer=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buffer], {type:'application/octet-stream'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function buildMonthlySheetStyled(wb, tipsF){
+  const ws=wb.addWorksheet('Propinas');
+  const meses=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  const grupos={};
+  tipsF.forEach(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!grupos[key]) grupos[key]=[];
+    grupos[key].push(t);
+  });
+  const keys=Object.keys(grupos).sort();
+  const bloques=keys.map(key=>{
+    const [y,m]=key.split('-');
+    const label='PROPINAS '+meses[parseInt(m)-1]+' '+y;
+    const rows=grupos[key].slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[fmtDate(t.date), t.name, parseFloat(t.amount)]);
+    const total=rows.reduce((s,r)=>s+r[2],0);
+    return {label, rows, total};
+  });
+
+  const THIN={style:'thin', color:{argb:'FFBFBFBF'}};
+  const BORDER_ALL={top:THIN,left:THIN,bottom:THIN,right:THIN};
+  const POR_FILA=4;
+  let rowCursor=1;
+  for(let i=0;i<bloques.length;i+=POR_FILA){
+    const grupo=bloques.slice(i,i+POR_FILA);
+    const maxRows=Math.max(...grupo.map(b=>b.rows.length));
+    const baseRow=rowCursor;
+    grupo.forEach((b,idx)=>{
+      const col=idx*4+1;
+      ws.mergeCells(baseRow, col, baseRow, col+2);
+      const cell=ws.getCell(baseRow, col);
+      cell.value=b.label;
+      cell.font={bold:true, color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FF1D9E75'}};
+      cell.alignment={horizontal:'center'};
+      for(let cc=col; cc<=col+2; cc++) ws.getCell(baseRow,cc).border=BORDER_ALL;
+    });
+    const headerRow=baseRow+1;
+    grupo.forEach((b,idx)=>{
+      const col=idx*4+1;
+      ['FECHA','CLIENTE','PROPINA'].forEach((h,j)=>{
+        const cell=ws.getCell(headerRow, col+j);
+        cell.value=h;
+        cell.font={bold:true};
+        cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFE8F5EF'}};
+        cell.border=BORDER_ALL;
+      });
+    });
+    for(let r=0;r<maxRows;r++){
+      const rowIdx=headerRow+1+r;
+      grupo.forEach((b,idx)=>{
+        const col=idx*4+1;
+        if(b.rows[r]){
+          ws.getCell(rowIdx,col).value=b.rows[r][0];
+          ws.getCell(rowIdx,col+1).value=b.rows[r][1];
+          ws.getCell(rowIdx,col+2).value=b.rows[r][2];
+        }
+        for(let cc=col; cc<=col+2; cc++) ws.getCell(rowIdx,cc).border=BORDER_ALL;
+      });
+    }
+    const totalRow=headerRow+1+maxRows;
+    grupo.forEach((b,idx)=>{
+      const col=idx*4+1;
+      ws.getCell(totalRow,col+1).value='TOTAL';
+      ws.getCell(totalRow,col+2).value=parseFloat(b.total.toFixed(2));
+      for(let cc=col; cc<=col+2; cc++){
+        const cell=ws.getCell(totalRow,cc);
+        cell.font={bold:true};
+        cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFB7E4CC'}};
+        cell.border=BORDER_ALL;
+      }
+    });
+    rowCursor=totalRow+2;
+  }
+  const numTablas=Math.min(bloques.length, POR_FILA);
+  for(let i=0;i<numTablas;i++){
+    const col=i*4+1;
+    ws.getColumn(col).width=12;
+    ws.getColumn(col+1).width=24;
+    ws.getColumn(col+2).width=12;
+    ws.getColumn(col+3).width=3;
+  }
+}
+
+async function exportExcelFiltered(tipsF, memsF, label){
+  const wb=new ExcelJS.Workbook();
+  if(tipsF.length){
+    buildMonthlySheetStyled(wb, tipsF);
+  }
+  if(memsF.length){
+    const ws=wb.addWorksheet('Membresias');
+    const THIN={style:'thin', color:{argb:'FFBFBFBF'}};
+    const BORDER_ALL={top:THIN,left:THIN,bottom:THIN,right:THIN};
+    ws.columns=[{width:14},{width:16},{width:16},{width:26}];
+    const headerRow=ws.addRow(['Tipo','Fecha','Ganancia (USD)','Nota']);
+    headerRow.eachCell(cell=>{
+      cell.font={bold:true, color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FF185FA5'}};
+      cell.border=BORDER_ALL;
+    });
+    memsF.forEach(m=>{
+      const row=ws.addRow([m.tipo, fmtDate(m.fecha), parseFloat(m.monto), m.nota||'']);
+      row.eachCell(cell=>cell.border=BORDER_ALL);
+    });
+    const totalMem=memsF.reduce((s,m)=>s+parseFloat(m.monto),0);
+    const totalRow=ws.addRow(['', 'TOTAL', parseFloat(totalMem.toFixed(2)), '']);
+    totalRow.eachCell(cell=>{
+      cell.font={bold:true};
+      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFEBF2FA'}};
+      cell.border=BORDER_ALL;
+    });
+  }
+  await downloadWorkbook(wb, 'mis_propinas_'+label.toLowerCase().replace(/\s+/g,'_')+'.xlsx');
+  showToast('✓ Excel descargado');
+}
+
+function exportPDFFiltered(tipsF, memsF, label){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const totalTips=tipsF.reduce((s,t)=>s+parseFloat(t.amount),0);
+  const totalMems=memsF.reduce((s,m)=>s+parseFloat(m.monto),0);
+  doc.setFontSize(20);doc.setTextColor(29,158,117);doc.text('Mis Ganancias',14,22);
+  doc.setFontSize(10);doc.setTextColor(120,120,120);doc.text('Período: '+label+' · Generado el '+fmtDate(today()),14,30);
+  doc.setFontSize(12);doc.setTextColor(40,40,40);
+  doc.text('Total general: $'+(totalTips+totalMems).toFixed(2),14,42);
+  doc.text('Propinas: $'+totalTips.toFixed(2),14,50);
+  doc.text('Membresías: $'+totalMems.toFixed(2),14,58);
+  if(tipsF.length){
+    doc.setFontSize(13);doc.setTextColor(29,158,117);doc.text('Propinas',14,72);
+    doc.autoTable({startY:78,head:[['Nombre','Fecha','Monto','Nota']],body:tipsF.map(t=>[t.name,fmtDate(t.date),'$'+parseFloat(t.amount).toFixed(2),t.note||'—']),foot:[['','Total','$'+totalTips.toFixed(2),'']],headStyles:{fillColor:[29,158,117],textColor:255,fontSize:9},footStyles:{fillColor:[235,250,244],textColor:[15,110,86],fontStyle:'bold'},bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[245,252,249]},margin:{left:14,right:14}});
+  }
+  if(memsF.length){
+    const y=doc.lastAutoTable?doc.lastAutoTable.finalY+14:78;
+    doc.setFontSize(13);doc.setTextColor(24,95,165);doc.text('Membresías',14,y);
+    doc.autoTable({startY:y+6,head:[['Tipo','Fecha','Ganancia','Nota']],body:memsF.map(m=>[m.tipo,fmtDate(m.fecha),'$'+parseFloat(m.monto).toFixed(2),m.nota||'—']),foot:[['','Total','$'+totalMems.toFixed(2),'']],headStyles:{fillColor:[24,95,165],textColor:255,fontSize:9},footStyles:{fillColor:[235,242,250],textColor:[12,68,124],fontStyle:'bold'},bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[245,248,252]},margin:{left:14,right:14}});
+  }
+  doc.save('mis_propinas_'+label.toLowerCase().replace(/\s+/g,'_')+'.pdf');showToast('✓ PDF descargado');
+}
+
+(async()=>{
+  const isRecovery = window.location.hash.includes('type=recovery');
+  if (isRecovery) {
+    showSetNewPassword();
+  } else {
+    const{data:{session}}=await sb.auth.getSession();
+    if(session){showApp(session.user);}else{showAuth();}
+  }
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){ showSetNewPassword(); return; }
+    if(isRecovery) return;
+    if(event==='SIGNED_IN'&&session)showApp(session.user);
+    if(event==='SIGNED_OUT')showAuth();
+  });
+})();
+</script>
+</body>
+</html>
