@@ -417,6 +417,7 @@ tbody tr:hover td{background:var(--bg2);}
       <button class="main-tab active" data-tab="resumen" onclick="showMainTab('resumen')">📊 Resumen</button>
       <button class="main-tab" data-tab="propinas" onclick="showMainTab('propinas')">💵 Propinas</button>
       <button class="main-tab" data-tab="membresias" onclick="showMainTab('membresias')">🏆 Membresías</button>
+      <button class="main-tab" data-tab="cursos" onclick="showMainTab('cursos')">🎓 Cursos</button>
       <button class="main-tab" data-tab="cobros" onclick="showMainTab('cobros')">💳 Cobros</button>
     </div>
 
@@ -675,6 +676,84 @@ tbody tr:hover td{background:var(--bg2);}
       </div>
     </div>
 
+    <!-- ===== PESTAÑA: CURSOS ===== -->
+    <div class="tab-panel" id="tab-cursos">
+      <div class="form-card">
+        <div class="form-title">🎓 Registrar curso vendido</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Curso</label>
+            <select id="c-curso" onchange="autofillCursoMonto()" style="width:100%;height:40px;padding:0 10px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
+              <option value="">— Selecciona un curso —</option>
+              <option value="Ebook - Mi primer dealer en FL" data-monto="5">Ebook - Mi primer dealer en FL — $5</option>
+              <option value="ABC de las subastas + asesoría vía zoom" data-monto="10">ABC de las subastas + asesoría vía zoom — $10</option>
+              <option value="Tutorial Adesa" data-monto="5">Tutorial Adesa — $5</option>
+              <option value="Tutorial Manheim" data-monto="5">Tutorial Manheim — $5</option>
+              <option value="Tutorial IAAI" data-monto="5">Tutorial IAAI — $5</option>
+              <option value="ABC de las subastas" data-monto="10">ABC de las subastas — $10</option>
+              <option value="Tutorial Copart" data-monto="5">Tutorial Copart — $5</option>
+              <option value="Ebook - ABC de las subastas" data-monto="5">Ebook - ABC de las subastas — $5</option>
+              <option value="Ebook - Carfax" data-monto="5">Ebook - Carfax — $5</option>
+              <option value="Ebook - Guía básica conductores" data-monto="5">Ebook - Guía básica conductores — $5</option>
+              <option value="Bootcamp 2.0" data-monto="20">Bootcamp 2.0 — $20</option>
+              <option value="Tipos de título e historial de vehículo" data-monto="5">Tipos de título e historial de vehículo — $5</option>
+              <option value="Guía Exportación Honduras" data-monto="5">Guía Exportación Honduras — $5</option>
+              <option value="Guía Exportación México" data-monto="5">Guía Exportación México — $5</option>
+              <option value="Guía Exportación El Salvador" data-monto="5">Guía Exportación El Salvador — $5</option>
+              <option value="Guía Exportación Guatemala" data-monto="5">Guía Exportación Guatemala — $5</option>
+              <option value="Guía Exportación República Dominicana" data-monto="5">Guía Exportación República Dominicana — $5</option>
+              <option value="Guía Exportación Venezuela" data-monto="5">Guía Exportación Venezuela — $5</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Fecha</label>
+            <input id="c-fecha" type="date">
+          </div>
+          <div class="field">
+            <label>Comisión (USD)</label>
+            <input id="c-monto" type="number" min="0" step="0.01" placeholder="Se llena automático">
+          </div>
+          <div class="field">
+            <label>Nota (opcional)</label>
+            <input id="c-nota" type="text" placeholder="Ej: cliente referido por...">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addCurso()">+ Agregar curso</button>
+        <div id="c-msg" class="field-msg"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">🎓 Historial de cursos</div>
+          <div class="mini-stats" id="c-mini-stats">$0.00 en total</div>
+        </div>
+        <div class="filter-bar">
+          <select id="cfil-year" onchange="renderCursos()"><option value="">Todos los años</option></select>
+          <select id="cfil-month" onchange="renderCursos()">
+            <option value="">Todos los meses</option>
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <input id="cfil-search" type="text" placeholder="🔍 Buscar..." oninput="renderCursos()">
+        </div>
+        <div id="curso-filtered-summary" style="padding:0 20px 14px;font-size:13px;color:var(--text2)"></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="width:35%">Curso</th>
+              <th style="width:20%">Fecha</th>
+              <th style="width:18%">Comisión</th>
+              <th style="width:20%">Nota</th>
+              <th style="width:7%"></th>
+            </tr></thead>
+            <tbody id="curso-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== PESTAÑA: COBROS ===== -->
     <div class="tab-panel" id="tab-cobros">
       <div id="historial-cobros-wrap" style="display:none">
@@ -813,7 +892,7 @@ const SUPABASE_KEY='sb_publishable_BC5a1ZI6M6-UnS_QYZN3Kg_dyVm1Ogg';
 const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storage:window.sessionStorage,persistSession:true,autoRefreshToken:true}});
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-let tips=[],mems=[],chartMode='monthly',chartInst=null,editingId=null,currentUser=null;
+let tips=[],mems=[],cursos=[],chartMode='monthly',chartInst=null,editingId=null,currentUser=null;
 
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtDate(str){const d=new Date(str+'T00:00:00');return`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
@@ -829,6 +908,7 @@ function showApp(user){
   loadNombre(user.id);
   setTimeout(checkPerfil, 1500);
   document.getElementById('f-date').value=today();
+  document.getElementById('c-fecha').value=today();
   const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
   
   loadAll();
@@ -1266,6 +1346,7 @@ async function loadAll(){
   await loadCiclo();
   await loadCobros();
   await loadMeta();
+  await loadCursos();
   checkAdmin();
 }
 
@@ -1437,15 +1518,18 @@ function updateGrand(){
   const curM=now.getMonth()+1,curY=now.getFullYear();
   const totalTips=tips.reduce((s,t)=>s+parseFloat(t.amount),0);
   const totalMems=mems.reduce((s,m)=>s+parseFloat(m.monto),0);
-  const grand=totalTips+totalMems;
+  const totalCursos=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const grand=totalTips+totalMems+totalCursos;
   const monthTips=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
   const monthMems=mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
+  const monthCursos=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
   const yearTips=tips.filter(t=>new Date(t.date+'T00:00:00').getFullYear()===curY).reduce((s,t)=>s+parseFloat(t.amount),0);
   const yearMems=mems.filter(m=>new Date(m.fecha+'T00:00:00').getFullYear()===curY).reduce((s,m)=>s+parseFloat(m.monto),0);
+  const yearCursos=cursos.filter(c=>new Date(c.fecha+'T00:00:00').getFullYear()===curY).reduce((s,c)=>s+parseFloat(c.monto),0);
   document.getElementById('grand-total').textContent='$'+grand.toFixed(2);
-  document.getElementById('grand-month').textContent='$'+(monthTips+monthMems).toFixed(2);
-  document.getElementById('grand-year').textContent='$'+(yearTips+yearMems).toFixed(2);
-  document.getElementById('grand-count').textContent=tips.length+mems.length;
+  document.getElementById('grand-month').textContent='$'+(monthTips+monthMems+monthCursos).toFixed(2);
+  document.getElementById('grand-year').textContent='$'+(yearTips+yearMems+yearCursos).toFixed(2);
+  document.getElementById('grand-count').textContent=tips.length+mems.length+cursos.length;
   updateStats();
   renderMeta();
 }
@@ -1516,13 +1600,99 @@ function renderMeta(){
   msg.textContent = pct>=100 ? '🎉 ¡Alcanzaste tu meta este mes!' : pct+'% completado · faltan $'+Math.max(0,metaMensual-actual).toFixed(2);
 }
 
+/* ===== CURSOS ===== */
+function autofillCursoMonto(){
+  const sel=document.getElementById('c-curso');
+  const opt=sel.options[sel.selectedIndex];
+  const monto=opt.dataset.monto;
+  if(monto) document.getElementById('c-monto').value=monto;
+}
+
+async function loadCursos(){
+  try{
+    const{data}=await sb.from('cursos').select('*').eq('user_id',currentUser.id).order('fecha',{ascending:false});
+    cursos=data||[];
+    updateYearFilters();
+    renderCursos();
+    updateGrand();
+  }catch(e){}
+}
+
+async function addCurso(){
+  const curso=document.getElementById('c-curso').value.trim();
+  const fecha=document.getElementById('c-fecha').value;
+  const monto=parseFloat(document.getElementById('c-monto').value);
+  const nota=document.getElementById('c-nota').value.trim();
+  const msg=document.getElementById('c-msg');
+  if(!curso){msg.className='field-msg error';msg.textContent='Selecciona un curso.';return;}
+  if(!fecha){msg.className='field-msg error';msg.textContent='Selecciona la fecha.';return;}
+  if(!monto||monto<=0){msg.className='field-msg error';msg.textContent='El monto debe ser mayor a 0.';return;}
+  const btn=document.querySelector('#tab-cursos .btn-primary');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{data,error}=await sb.from('cursos').insert([{user_id:currentUser.id,curso,fecha,monto,nota:nota||null}]).select();
+  btn.disabled=false;btn.textContent='+ Agregar curso';
+  if(error){msg.className='field-msg error';msg.textContent='Error al guardar.';return;}
+  cursos.unshift(data[0]);
+  document.getElementById('c-curso').value='';
+  document.getElementById('c-monto').value='';
+  document.getElementById('c-nota').value='';
+  msg.className='field-msg success';msg.textContent='✓ Curso registrado';
+  updateYearFilters();renderCursos();updateGrand();
+  setTimeout(()=>msg.textContent='',3000);
+}
+
+async function deleteCurso(id){
+  if(!confirm('¿Eliminar este registro de curso?'))return;
+  await sb.from('cursos').delete().eq('id',id);
+  cursos=cursos.filter(c=>c.id!==id);
+  renderCursos();updateGrand();
+}
+
+function renderCursos(){
+  const fy=document.getElementById('cfil-year').value;
+  const fm=document.getElementById('cfil-month').value;
+  const fs=(document.getElementById('cfil-search').value||'').toLowerCase();
+  let list=cursos.filter(c=>{
+    const d=new Date(c.fecha+'T00:00:00');
+    if(fy&&String(d.getFullYear())!==fy)return false;
+    if(fm&&String(d.getMonth()+1)!==fm)return false;
+    if(fs&&!c.curso.toLowerCase().includes(fs))return false;
+    return true;
+  });
+  const total=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const now=new Date();const curM=now.getMonth()+1,curY=now.getFullYear();
+  const mesTotal=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
+  document.getElementById('c-mini-stats').textContent=`$${total.toFixed(2)} en total · $${mesTotal.toFixed(2)} este mes · ${cursos.length} registros`;
+  const filtTotal=list.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let filtroLabel='';
+  if(fy&&fm) filtroLabel=`en ${meses[parseInt(fm)-1]} ${fy}`;
+  else if(fy) filtroLabel=`en ${fy}`;
+  else if(fm) filtroLabel=`en ${meses[parseInt(fm)-1]} (todos los años)`;
+  document.getElementById('curso-filtered-summary').textContent = filtroLabel
+    ? `Mostrando ${list.length} registro${list.length===1?'':'s'} ${filtroLabel} · Total: $${filtTotal.toFixed(2)}`
+    : (fs?`${list.length} resultado${list.length===1?'':'s'} para "${fs}" · Total: $${filtTotal.toFixed(2)}`:'');
+  const tbody=document.getElementById('curso-body');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--text2)">Sin registros</td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${c.curso}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px"><span class="date-badge">${fmtDate(c.fecha)}</span></td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:14px;font-weight:700;color:var(--green)">$${parseFloat(c.monto).toFixed(2)}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--text2)">${c.nota||'—'}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);text-align:center"><button onclick="deleteCurso('${c.id}')" class="btn-del">🗑</button></td>
+  </tr>`).join('');
+}
+
 function updateYearFilters(){
   const tipYears=[...new Set(tips.map(t=>t.date.slice(0,4)))].sort((a,b)=>b-a);
   const memYears=[...new Set(mems.map(m=>m.fecha.slice(0,4)))].sort((a,b)=>b-a);
+  const curYears=[...new Set(cursos.map(c=>c.fecha.slice(0,4)))].sort((a,b)=>b-a);
   const s1=document.getElementById('fil-year'),c1=s1.value;
   s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
   const s2=document.getElementById('mfil-year'),c2=s2.value;
   s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
+  const s3=document.getElementById('cfil-year'),c3=s3.value;
+  s3.innerHTML='<option value="">Todos los años</option>'+curYears.map(y=>`<option value="${y}"${y===c3?' selected':''}>${y}</option>`).join('');
 }
 
 function setChart(mode,btn){
