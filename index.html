@@ -1644,53 +1644,15 @@ async function deleteCurso(id){
   renderMems();updateGrand();
 }
 
-function renderCursos(){
-  const fy=document.getElementById('cfil-year').value;
-  const fm=document.getElementById('cfil-month').value;
-  const fs=(document.getElementById('cfil-search').value||'').toLowerCase();
-  let list=cursos.filter(c=>{
-    const d=new Date(c.fecha+'T00:00:00');
-    if(fy&&String(d.getFullYear())!==fy)return false;
-    if(fm&&String(d.getMonth()+1)!==fm)return false;
-    if(fs&&!c.curso.toLowerCase().includes(fs))return false;
-    return true;
-  });
-  const total=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
-  const now=new Date();const curM=now.getMonth()+1,curY=now.getFullYear();
-  const mesTotal=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
-  document.getElementById('c-section-total').textContent='$'+total.toFixed(2);
-  document.getElementById('c-month-total').textContent='$'+mesTotal.toFixed(2);
-  document.getElementById('c-count-total').textContent=cursos.length;
-  const filtTotal=list.reduce((s,c)=>s+parseFloat(c.monto),0);
-  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  let filtroLabel='';
-  if(fy&&fm) filtroLabel=`en ${meses[parseInt(fm)-1]} ${fy}`;
-  else if(fy) filtroLabel=`en ${fy}`;
-  else if(fm) filtroLabel=`en ${meses[parseInt(fm)-1]} (todos los años)`;
-  document.getElementById('curso-filtered-summary').textContent = filtroLabel
-    ? `Mostrando ${list.length} registro${list.length===1?'':'s'} ${filtroLabel} · Total: $${filtTotal.toFixed(2)}`
-    : (fs?`${list.length} resultado${list.length===1?'':'s'} para "${fs}" · Total: $${filtTotal.toFixed(2)}`:'');
-  const tbody=document.getElementById('curso-body');
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--text2)">Sin registros</td></tr>`;return;}
-  tbody.innerHTML=list.map(c=>`<tr>
-    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${c.curso}</td>
-    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px"><span class="date-badge">${fmtDate(c.fecha)}</span></td>
-    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:14px;font-weight:700;color:var(--green)">$${parseFloat(c.monto).toFixed(2)}</td>
-    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--text2)">${c.nota||'—'}</td>
-    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);text-align:center"><button onclick="deleteCurso('${c.id}')" class="btn-del">🗑</button></td>
-  </tr>`).join('');
-}
+function renderCursos(){ renderMems(); }
 
 function updateYearFilters(){
   const tipYears=[...new Set(tips.map(t=>t.date.slice(0,4)))].sort((a,b)=>b-a);
-  const memYears=[...new Set(mems.map(m=>m.fecha.slice(0,4)))].sort((a,b)=>b-a);
-  const curYears=[...new Set(cursos.map(c=>c.fecha.slice(0,4)))].sort((a,b)=>b-a);
-  const s1=document.getElementById('fil-year'),c1=s1.value;
-  s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
-  const s2=document.getElementById('mfil-year'),c2=s2.value;
-  s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
-  const s3=document.getElementById('cfil-year'),c3=s3.value;
-  s3.innerHTML='<option value="">Todos los años</option>'+curYears.map(y=>`<option value="${y}"${y===c3?' selected':''}>${y}</option>`).join('');
+  const memYears=[...new Set([...mems.map(m=>m.fecha.slice(0,4)),...cursos.map(c=>c.fecha.slice(0,4))])].sort((a,b)=>b-a);
+  const s1=document.getElementById('fil-year'),c1=s1?s1.value:'';
+  if(s1) s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
+  const s2=document.getElementById('mfil-year'),c2=s2?s2.value:'';
+  if(s2) s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
 }
 
 function setChart(mode,btn){
