@@ -471,6 +471,12 @@ tbody tr:hover td{background:var(--bg2);}
             <span class="dot">·</span>
             <span>Premium: <strong id="cobro-premium-mem">$0.00</strong></span>
           </div>
+          <div id="cobro-cursos-mem" style="display:none;border-top:0.5px solid var(--border);margin-top:12px;padding-top:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+              <span style="font-size:12px;color:var(--text2)">🎓 Cursos este mes</span>
+              <span id="cobro-cursos-mem-monto" style="font-size:13px;font-weight:700;color:var(--green)"></span>
+            </div>
+          </div>
           <div class="cobro-footer" id="cobro-footer-mem"></div>
         </div>
 
@@ -2099,6 +2105,17 @@ function updateCobro() {
     document.getElementById('cobro-periodo-mem').textContent = 'Período: ' + pm.label + ' · ' + diasLabelMem + ' para cobrar';
     document.getElementById('cobro-pro-mem').textContent = proCountPeriodo + ' ($' + proPeriodo.toFixed(2) + ')';
     document.getElementById('cobro-premium-mem').textContent = premiumCountPeriodo + ' ($' + premiumPeriodo.toFixed(2) + ')';
+
+    // Cursos del mes en la tarjeta de membresías
+    const cursosEsteMes = cursos.filter(c => { const d = new Date(c.fecha+'T00:00:00'); return d.getMonth()+1 === curM && d.getFullYear() === curY; });
+    const cursosMemWrap = document.getElementById('cobro-cursos-mem');
+    if (cursosEsteMes.length > 0) {
+      const cursosTotal = cursosEsteMes.reduce((s,c) => s+parseFloat(c.monto), 0);
+      document.getElementById('cobro-cursos-mem-monto').textContent = `$${cursosTotal.toFixed(2)} · ${cursosEsteMes.length} vendido${cursosEsteMes.length===1?'':'s'}`;
+      cursosMemWrap.style.display = 'block';
+    } else {
+      cursosMemWrap.style.display = 'none';
+    }
 
     // Comparación con el período anterior (membresías siempre comparan mes vs mes anterior)
     const pmAnt = getPeriodoAnterior('mensual');
