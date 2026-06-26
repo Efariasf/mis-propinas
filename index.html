@@ -2062,6 +2062,7 @@ function updateCobro() {
     document.getElementById('cobro-premium-mem').textContent = premiumCountPeriodo + ' ($' + premiumPeriodo.toFixed(2) + ')';
 
     // Cursos del mes en la tarjeta de membresías
+    const _now = new Date(); const curM = _now.getMonth()+1; const curY = _now.getFullYear();
     const cursosEsteMes = cursos.filter(c => { const d = new Date(c.fecha+'T00:00:00'); return d.getMonth()+1 === curM && d.getFullYear() === curY; });
     const cursosMemWrap = document.getElementById('cobro-cursos-mem');
     if (cursosEsteMes.length > 0) {
