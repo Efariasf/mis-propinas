@@ -416,7 +416,8 @@ tbody tr:hover td{background:var(--bg2);}
     <div class="main-tabs">
       <button class="main-tab active" data-tab="resumen" onclick="showMainTab('resumen')">📊 Resumen</button>
       <button class="main-tab" data-tab="propinas" onclick="showMainTab('propinas')">💵 Propinas</button>
-      <button class="main-tab" data-tab="membresias" onclick="showMainTab('membresias')">🏆 Membresías & Cursos</button>
+      <button class="main-tab" data-tab="membresias" onclick="showMainTab('membresias')">🏆 Membresías</button>
+      <button class="main-tab" data-tab="cursos" onclick="showMainTab('cursos')">🎓 Cursos</button>
       <button class="main-tab" data-tab="cobros" onclick="showMainTab('cobros')">💳 Cobros</button>
     </div>
 
@@ -621,7 +622,7 @@ tbody tr:hover td{background:var(--bg2);}
       </div>
     </div>
 
-    <!-- ===== PESTAÑA: MEMBRESÍAS & CURSOS (unificada) ===== -->
+    <!-- ===== PESTAÑA: MEMBRESÍAS ===== -->
     <div class="tab-panel" id="tab-membresias">
       <div class="mini-stats">
         <span><strong id="mem-section-total">$0.00</strong> en total</span>
@@ -631,17 +632,11 @@ tbody tr:hover td{background:var(--bg2);}
         <span><strong id="mm-pro">0</strong> Pro</span>
         <span class="dot">·</span>
         <span><strong id="mm-premium">0</strong> Premium</span>
-        <span class="dot">·</span>
-        <span><strong id="c-count-total">0</strong> cursos</span>
       </div>
 
       <div class="form-card">
-        <div class="form-title">➕ Registrar</div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button id="tab-reg-mem" onclick="showRegTab('mem')" style="flex:1;height:32px;border-radius:var(--radius);border:1.5px solid var(--green);background:rgba(29,158,117,0.1);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🏆 Membresía</button>
-          <button id="tab-reg-cur" onclick="showRegTab('cur')" style="flex:1;height:32px;border-radius:var(--radius);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit">🎓 Curso</button>
-        </div>
-        <div id="reg-form-mem" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="form-title">➕ Registrar membresía</div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
           <div class="field" style="flex:1;min-width:160px">
             <label>Tipo de membresía</label>
             <select id="m-tipo" onchange="updateMonto()" style="width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
@@ -651,7 +646,55 @@ tbody tr:hover td{background:var(--bg2);}
           </div>
           <button class="btn-primary" id="btn-add-mem" onclick="addMembresia()" style="height:36px;white-space:nowrap">+ Registrar</button>
         </div>
-        <div id="reg-form-cur" style="display:none;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text2)">Se registrará automáticamente en <strong id="mes-actual"></strong></div>
+        <span class="err" id="mem-error" style="margin-top:6px">Error al guardar.</span>
+      </div>
+
+      <!-- HISTORIAL MEMBRESIAS -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <span>🏆 Historial de membresías</span>
+          <div class="filters">
+            <select id="mfil-year" onchange="renderMems()"><option value="">Todos los años</option></select>
+            <select id="mfil-month" onchange="renderMems()">
+              <option value="">Todos los meses</option>
+              <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+              <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <select id="mfil-tipo" onchange="renderMems()">
+              <option value="">Todos</option>
+              <option value="PRO">PRO</option>
+              <option value="PREMIUM">PREMIUM</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:25%">Tipo</th><th style="width:30%">Mes</th>
+            <th style="width:25%">Ganancia</th><th style="width:20%"></th>
+          </tr></thead>
+          <tbody id="mem-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PESTAÑA: CURSOS ===== -->
+    <div class="tab-panel" id="tab-cursos">
+      <div class="mini-stats">
+        <span><strong id="c-section-total">$0.00</strong> en total</span>
+        <span class="dot">·</span>
+        <span><strong id="c-month-total">$0.00</strong> este mes</span>
+        <span class="dot">·</span>
+        <span><strong id="c-count-total">0</strong> vendidos</span>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">➕ Registrar curso vendido</div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
           <div class="field" style="flex:2;min-width:200px">
             <label>Curso</label>
             <select id="c-curso" onchange="autofillCursoMonto()" style="width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
@@ -676,48 +719,44 @@ tbody tr:hover td{background:var(--bg2);}
               <option value="Guía Exportación Venezuela" data-monto="5">Guía Exportación Venezuela — $5</option>
             </select>
           </div>
-          <div class="field" style="min-width:130px">
+          <div class="field" style="min-width:140px">
             <label>Nota (opcional)</label>
             <input id="c-nota" type="text" placeholder="Ej: referido por..." style="height:36px">
           </div>
           <input id="c-monto" type="hidden">
           <button class="btn-primary" id="btn-add-curso" onclick="addCurso()" style="height:36px;white-space:nowrap">+ Registrar</button>
         </div>
-        <div style="font-size:12px;color:var(--text2)" id="reg-note">Se registrará automáticamente en <strong id="mes-actual"></strong></div>
-        <span class="err" id="mem-error" style="margin-top:6px">Error al guardar.</span>
+        <div style="font-size:12px;color:var(--text2)">Se registrará con la fecha de hoy · La comisión se asigna automáticamente según el curso</div>
         <span class="err" id="c-msg" style="margin-top:6px"></span>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
-          <span>📋 Historial</span>
+          <span>🎓 Historial de cursos</span>
           <div class="filters">
-            <select id="mfil-year" onchange="renderMems()"><option value="">Todos los años</option></select>
-            <select id="mfil-month" onchange="renderMems()">
+            <select id="cfil-year" onchange="renderCursos()"><option value="">Todos los años</option></select>
+            <select id="cfil-month" onchange="renderCursos()">
               <option value="">Todos los meses</option>
               <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
               <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
               <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
               <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
             </select>
-            <select id="mfil-tipo" onchange="renderMems()">
-              <option value="">Todos</option>
-              <option value="PRO">PRO</option>
-              <option value="PREMIUM">PREMIUM</option>
-              <option value="CURSO">Cursos</option>
-            </select>
+            <input id="cfil-search" type="text" placeholder="🔍 Buscar..." oninput="renderCursos()" style="height:30px;padding:0 10px;border:0.5px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;min-width:100px">
           </div>
         </div>
+        <div id="curso-filtered-summary" style="padding:4px 20px 12px;font-size:12px;color:var(--text2)"></div>
         <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th style="width:38%">Tipo / Curso</th>
-            <th style="width:25%">Mes / Fecha</th>
-            <th style="width:25%">Ganancia</th>
-            <th style="width:12%"></th>
-          </tr></thead>
-          <tbody id="mem-body"></tbody>
-        </table>
+          <table>
+            <thead><tr>
+              <th style="width:40%">Curso</th>
+              <th style="width:20%">Fecha</th>
+              <th style="width:18%">Comisión</th>
+              <th style="width:17%">Nota</th>
+              <th style="width:5%"></th>
+            </tr></thead>
+            <tbody id="curso-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1448,67 +1487,36 @@ async function deleteMem(id){
   updateYearFilters();renderMems();updateGrand();updateChart();updateCobro();
   showToast('Registro eliminado');
 }
-function showRegTab(tipo){
-  const isMem = tipo==='mem';
-  document.getElementById('reg-form-mem').style.display = isMem ? 'flex' : 'none';
-  document.getElementById('reg-form-cur').style.display = isMem ? 'none' : 'flex';
-  const note = document.getElementById('reg-note');
-  if(note) note.innerHTML = isMem
-    ? 'Se registrará automáticamente en <strong id="mes-actual">' + getMesActual() + '</strong>'
-    : 'Se registrará con la fecha de hoy · La comisión se asigna automáticamente';
-  const btnM = document.getElementById('tab-reg-mem');
-  const btnC = document.getElementById('tab-reg-cur');
-  if(btnM){ btnM.style.border = isMem?'1.5px solid var(--green)':'0.5px solid var(--border2)'; btnM.style.background = isMem?'rgba(29,158,117,0.1)':'transparent'; btnM.style.color = isMem?'var(--green)':'var(--text2)'; }
-  if(btnC){ btnC.style.border = !isMem?'1.5px solid var(--green)':'0.5px solid var(--border2)'; btnC.style.background = !isMem?'rgba(29,158,117,0.1)':'transparent'; btnC.style.color = !isMem?'var(--green)':'var(--text2)'; }
-}
-
 function renderMems(){
   const fy=document.getElementById('mfil-year').value;
   const fm=document.getElementById('mfil-month').value;
   const ft=document.getElementById('mfil-tipo').value;
-  const now=new Date();
-  const curM=now.getMonth()+1,curY=now.getFullYear();
-  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-  // Stats de membresías
+  const list=mems.filter(m=>{
+    const d=new Date(m.fecha+'T00:00:00');
+    if(fy&&String(d.getFullYear())!==fy)return false;
+    if(fm&&String(d.getMonth()+1)!==fm)return false;
+    if(ft&&m.tipo!==ft)return false;
+    return true;
+  });
   const total=mems.reduce((s,m)=>s+parseFloat(m.monto),0);
   document.getElementById('mem-section-total').textContent='$'+total.toFixed(2);
+  const now=new Date();
+  const curM=now.getMonth()+1,curY=now.getFullYear();
   document.getElementById('mm-month').textContent='$'+mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0).toFixed(2);
   document.getElementById('mm-pro').textContent=mems.filter(m=>m.tipo==='PRO').length;
   document.getElementById('mm-premium').textContent=mems.filter(m=>m.tipo==='PREMIUM').length;
-  document.getElementById('c-count-total').textContent=cursos.length;
-
-  // Combinar membresías y cursos para el historial
-  const rowsMem = mems.map(m=>({fecha:m.fecha, tipo:m.tipo, label:null, monto:m.monto, id:m.id, esCurso:false}));
-  const rowsCur = cursos.map(c=>({fecha:c.fecha, tipo:'CURSO', label:c.curso, monto:c.monto, id:c.id, esCurso:true}));
-  const all = [...rowsMem, ...rowsCur].sort((a,b)=>b.fecha.localeCompare(a.fecha));
-
-  const list=all.filter(r=>{
-    const d=new Date(r.fecha+'T00:00:00');
-    if(fy&&String(d.getFullYear())!==fy)return false;
-    if(fm&&String(d.getMonth()+1)!==fm)return false;
-    if(ft&&r.tipo!==ft)return false;
-    return true;
-  });
-
   const tbody=document.getElementById('mem-body');
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📋</div>Sin registros.</div></td></tr>`;return;}
-  tbody.innerHTML=list.map(r=>{
-    const d=new Date(r.fecha+'T00:00:00');
-    const fechaLabel = r.esCurso ? fmtDate(r.fecha) : meses[d.getMonth()]+' '+d.getFullYear();
-    let badge;
-    if(r.tipo==='PRO') badge=`<span class="tipo-pro">PRO</span>`;
-    else if(r.tipo==='PREMIUM') badge=`<span class="tipo-premium">PREMIUM</span>`;
-    else badge=`<span style="background:rgba(29,158,117,0.12);color:var(--green);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px">CURSO</span>`;
-    const detalle = r.esCurso ? `<span style="font-size:12px;color:var(--text2);margin-left:6px">${r.label}</span>` : '';
-    const onDelete = r.esCurso ? `deleteCurso('${r.id}')` : `deleteMem('${r.id}')`;
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏆</div>Sin membresías aún.</div></td></tr>`;return;}
+  tbody.innerHTML=list.map(m=>{
+    const d=new Date(m.fecha+'T00:00:00');
+    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const mesLabel=meses[d.getMonth()]+' '+d.getFullYear();
     return`<tr>
-      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border)">${badge}${detalle}</td>
-      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border)"><span class="date-badge">${fechaLabel}</span></td>
-      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border)" class="amount">$${parseFloat(r.monto).toFixed(2)}</td>
-      <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);text-align:center"><button class="btn-del" onclick="${onDelete}" title="Eliminar">🗑</button></td>
-    </tr>`;
-  }).join('');
+    <td><span class="${m.tipo==='PRO'?'tipo-pro':'tipo-premium'}">${m.tipo}</span></td>
+    <td><span class="date-badge">${mesLabel}</span></td>
+    <td class="amount">$${parseFloat(m.monto).toFixed(2)}</td>
+    <td><button class="btn-del" onclick="deleteMem('${m.id}')" title="Eliminar">🗑</button></td>
+  </tr>`;}).join('');
 }
 
 function updateGrand(){
@@ -1611,7 +1619,7 @@ async function loadCursos(){
     const{data}=await sb.from('cursos').select('*').eq('user_id',currentUser.id).order('fecha',{ascending:false});
     cursos=data||[];
     updateYearFilters();
-    renderMems();
+    renderCursos();
     updateGrand();
   }catch(e){}
 }
@@ -1633,7 +1641,7 @@ async function addCurso(){
   document.getElementById('c-monto').value='';
   document.getElementById('c-nota').value='';
   msg.style.display='none';
-  updateYearFilters();renderMems();updateGrand();
+  updateYearFilters();renderCursos();updateGrand();
   showToast('✓ Curso registrado');
 }
 
@@ -1641,18 +1649,56 @@ async function deleteCurso(id){
   if(!confirm('¿Eliminar este registro de curso?'))return;
   await sb.from('cursos').delete().eq('id',id);
   cursos=cursos.filter(c=>c.id!==id);
-  renderMems();updateGrand();
+  renderCursos();updateGrand();
 }
 
-function renderCursos(){ renderMems(); }
+function renderCursos(){
+  const fy=document.getElementById('cfil-year').value;
+  const fm=document.getElementById('cfil-month').value;
+  const fs=(document.getElementById('cfil-search').value||'').toLowerCase();
+  let list=cursos.filter(c=>{
+    const d=new Date(c.fecha+'T00:00:00');
+    if(fy&&String(d.getFullYear())!==fy)return false;
+    if(fm&&String(d.getMonth()+1)!==fm)return false;
+    if(fs&&!c.curso.toLowerCase().includes(fs))return false;
+    return true;
+  });
+  const total=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const now=new Date();const curM=now.getMonth()+1,curY=now.getFullYear();
+  const mesTotal=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
+  document.getElementById('c-section-total').textContent='$'+total.toFixed(2);
+  document.getElementById('c-month-total').textContent='$'+mesTotal.toFixed(2);
+  document.getElementById('c-count-total').textContent=cursos.length;
+  const filtTotal=list.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let filtroLabel='';
+  if(fy&&fm) filtroLabel=`en ${meses[parseInt(fm)-1]} ${fy}`;
+  else if(fy) filtroLabel=`en ${fy}`;
+  else if(fm) filtroLabel=`en ${meses[parseInt(fm)-1]} (todos los años)`;
+  document.getElementById('curso-filtered-summary').textContent = filtroLabel
+    ? `Mostrando ${list.length} registro${list.length===1?'':'s'} ${filtroLabel} · Total: $${filtTotal.toFixed(2)}`
+    : (fs?`${list.length} resultado${list.length===1?'':'s'} para "${fs}" · Total: $${filtTotal.toFixed(2)}`:'');
+  const tbody=document.getElementById('curso-body');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--text2)">Sin registros</td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${c.curso}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:13px"><span class="date-badge">${fmtDate(c.fecha)}</span></td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:14px;font-weight:700;color:var(--green)">$${parseFloat(c.monto).toFixed(2)}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--text2)">${c.nota||'—'}</td>
+    <td style="padding:10px 14px;border-bottom:0.5px solid var(--border);text-align:center"><button onclick="deleteCurso('${c.id}')" class="btn-del">🗑</button></td>
+  </tr>`).join('');
+}
 
 function updateYearFilters(){
   const tipYears=[...new Set(tips.map(t=>t.date.slice(0,4)))].sort((a,b)=>b-a);
-  const memYears=[...new Set([...mems.map(m=>m.fecha.slice(0,4)),...cursos.map(c=>c.fecha.slice(0,4))])].sort((a,b)=>b-a);
-  const s1=document.getElementById('fil-year'),c1=s1?s1.value:'';
-  if(s1) s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
-  const s2=document.getElementById('mfil-year'),c2=s2?s2.value:'';
-  if(s2) s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
+  const memYears=[...new Set(mems.map(m=>m.fecha.slice(0,4)))].sort((a,b)=>b-a);
+  const curYears=[...new Set(cursos.map(c=>c.fecha.slice(0,4)))].sort((a,b)=>b-a);
+  const s1=document.getElementById('fil-year'),c1=s1.value;
+  s1.innerHTML='<option value="">Todos los años</option>'+tipYears.map(y=>`<option value="${y}"${y===c1?' selected':''}>${y}</option>`).join('');
+  const s2=document.getElementById('mfil-year'),c2=s2.value;
+  s2.innerHTML='<option value="">Todos los años</option>'+memYears.map(y=>`<option value="${y}"${y===c2?' selected':''}>${y}</option>`).join('');
+  const s3=document.getElementById('cfil-year'),c3=s3.value;
+  s3.innerHTML='<option value="">Todos los años</option>'+curYears.map(y=>`<option value="${y}"${y===c3?' selected':''}>${y}</option>`).join('');
 }
 
 function setChart(mode,btn){
