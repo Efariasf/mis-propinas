@@ -1663,8 +1663,18 @@ async function loadAdminData() {
   document.getElementById('adm-premium').textContent = mems.filter(m=>m.tipo==='PREMIUM').length;
   document.getElementById('adm-mes-label').textContent = meses[curM-1] + ' ' + curY;
   document.getElementById('adm-mes-label2').textContent = meses[curM-1] + ' ' + curY;
+  document.getElementById('admin-periodo-badge').textContent = meses[curM-1] + ' ' + curY;
 
-  // Resumen detallado por persona
+  // Build ranking by user
+  const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
+  document.getElementById('adm-users').textContent = userIds.length;
+
+  // Fetch nombres
+  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre');
+  const nombresMap = {};
+  (perfilesData||[]).forEach(p => nombresMap[p.user_id] = p.nombre);
+
+  // Resumen detallado por persona (aquí sí ya existen userIds y nombresMap)
   const resumenHTML = userIds.map(uid => {
     const nombre = nombresMap[uid] || uid.slice(0,8)+'...';
     const myTips = tips.filter(t=>t.user_id===uid&&new Date(t.date+'T00:00:00').getMonth()+1===curM&&new Date(t.date+'T00:00:00').getFullYear()===curY);
@@ -1674,10 +1684,9 @@ async function loadAdminData() {
     const premium = myMems.filter(m=>m.tipo==='PREMIUM');
     const proTotal = pro.reduce((s,m)=>s+parseFloat(m.monto),0);
     const premiumTotal = premium.reduce((s,m)=>s+parseFloat(m.monto),0);
-    const memsTotal = proTotal + premiumTotal;
-    const gran = tipsTotal + memsTotal;
+    const gran = tipsTotal + proTotal + premiumTotal;
     return `<div style="padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;flex-wrap:wrap;gap:12px;align-items:center">
-      <div style="min-width:100px;font-weight:700;font-size:14px">${nombre}</div>
+      <div style="min-width:110px;font-weight:700;font-size:14px">${nombre}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;flex:1">
         <div style="background:var(--bg2);border-radius:8px;padding:8px 14px;min-width:110px">
           <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Propinas</div>
@@ -1685,12 +1694,12 @@ async function loadAdminData() {
           <div style="font-size:11px;color:var(--text2)">${myTips.length} registro${myTips.length===1?'':'s'}</div>
         </div>
         <div style="background:var(--bg2);border-radius:8px;padding:8px 14px;min-width:110px">
-          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Membresías Pro</div>
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Pro</div>
           <div style="font-size:16px;font-weight:700;color:var(--blue)">$${proTotal.toFixed(2)}</div>
           <div style="font-size:11px;color:var(--text2)">${pro.length} vendida${pro.length===1?'':'s'}</div>
         </div>
         <div style="background:var(--bg2);border-radius:8px;padding:8px 14px;min-width:110px">
-          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Membresías Premium</div>
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Premium</div>
           <div style="font-size:16px;font-weight:700;color:var(--amber)">$${premiumTotal.toFixed(2)}</div>
           <div style="font-size:11px;color:var(--text2)">${premium.length} vendida${premium.length===1?'':'s'}</div>
         </div>
@@ -1703,16 +1712,6 @@ async function loadAdminData() {
     </div>`;
   }).join('');
   document.getElementById('adm-resumen-personas').innerHTML = resumenHTML || '<div style="padding:20px;color:var(--text2);font-size:13px">Sin datos este mes</div>';
-  document.getElementById('admin-periodo-badge').textContent = meses[curM-1] + ' ' + curY;
-
-  // Build ranking by user
-  const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
-  document.getElementById('adm-users').textContent = userIds.length;
-
-  // Fetch nombres
-  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre');
-  const nombresMap = {};
-  (perfilesData||[]).forEach(p => nombresMap[p.user_id] = p.nombre);
 
   const ranking = userIds.map(uid => {
     const myTips = tips.filter(t=>t.user_id===uid&&new Date(t.date+'T00:00:00').getMonth()+1===curM&&new Date(t.date+'T00:00:00').getFullYear()===curY);
