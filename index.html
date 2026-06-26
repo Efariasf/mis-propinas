@@ -403,7 +403,7 @@ tbody tr:hover td{background:var(--bg2);}
       <div class="grand-total-left">
         <h2>Total de ganancias</h2>
         <div class="amount" id="grand-total">$0.00</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">Propinas + Membresías</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">Propinas + Membresías + Cursos</div>
       </div>
       <div class="grand-total-right">
         <div class="grand-stat"><div class="grand-stat-label">Este mes</div><div class="grand-stat-value" id="grand-month">$0.00</div></div>
@@ -678,12 +678,20 @@ tbody tr:hover td{background:var(--bg2);}
 
     <!-- ===== PESTAÑA: CURSOS ===== -->
     <div class="tab-panel" id="tab-cursos">
+      <div class="mini-stats">
+        <span><strong id="c-section-total">$0.00</strong> en total</span>
+        <span class="dot">·</span>
+        <span><strong id="c-month-total">$0.00</strong> este mes</span>
+        <span class="dot">·</span>
+        <span><strong id="c-count-total">0</strong> vendidos</span>
+      </div>
+
       <div class="form-card">
-        <div class="form-title">🎓 Registrar curso vendido</div>
-        <div class="form-grid">
-          <div class="field">
+        <div class="form-title">➕ Registrar curso vendido</div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="field" style="flex:2;min-width:200px">
             <label>Curso</label>
-            <select id="c-curso" onchange="autofillCursoMonto()" style="width:100%;height:40px;padding:0 10px;border:0.5px solid var(--border2);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
+            <select id="c-curso" onchange="autofillCursoMonto()" style="width:100%;height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;">
               <option value="">— Selecciona un curso —</option>
               <option value="Ebook - Mi primer dealer en FL" data-monto="5">Ebook - Mi primer dealer en FL — $5</option>
               <option value="ABC de las subastas + asesoría vía zoom" data-monto="10">ABC de las subastas + asesoría vía zoom — $10</option>
@@ -705,48 +713,41 @@ tbody tr:hover td{background:var(--bg2);}
               <option value="Guía Exportación Venezuela" data-monto="5">Guía Exportación Venezuela — $5</option>
             </select>
           </div>
-          <div class="field">
-            <label>Fecha</label>
-            <input id="c-fecha" type="date">
-          </div>
-          <div class="field">
-            <label>Comisión (USD)</label>
-            <input id="c-monto" type="number" min="0" step="0.01" placeholder="Se llena automático">
-          </div>
-          <div class="field">
+          <div class="field" style="min-width:140px">
             <label>Nota (opcional)</label>
-            <input id="c-nota" type="text" placeholder="Ej: cliente referido por...">
+            <input id="c-nota" type="text" placeholder="Ej: referido por..." style="height:36px">
           </div>
+          <input id="c-monto" type="hidden">
+          <button class="btn-primary" id="btn-add-curso" onclick="addCurso()" style="height:36px;white-space:nowrap">+ Registrar</button>
         </div>
-        <button class="btn-primary" onclick="addCurso()">+ Agregar curso</button>
-        <div id="c-msg" class="field-msg"></div>
+        <div style="font-size:12px;color:var(--text2)">Se registrará con la fecha de hoy · La comisión se asigna automáticamente según el curso</div>
+        <span class="err" id="c-msg" style="margin-top:6px"></span>
       </div>
 
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title">🎓 Historial de cursos</div>
-          <div class="mini-stats" id="c-mini-stats">$0.00 en total</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <span>🎓 Historial de cursos</span>
+          <div class="filters">
+            <select id="cfil-year" onchange="renderCursos()"><option value="">Todos los años</option></select>
+            <select id="cfil-month" onchange="renderCursos()">
+              <option value="">Todos los meses</option>
+              <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+              <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+            <input id="cfil-search" type="text" placeholder="🔍 Buscar..." oninput="renderCursos()" style="height:30px;padding:0 10px;border:0.5px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;min-width:100px">
+          </div>
         </div>
-        <div class="filter-bar">
-          <select id="cfil-year" onchange="renderCursos()"><option value="">Todos los años</option></select>
-          <select id="cfil-month" onchange="renderCursos()">
-            <option value="">Todos los meses</option>
-            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-          <input id="cfil-search" type="text" placeholder="🔍 Buscar..." oninput="renderCursos()">
-        </div>
-        <div id="curso-filtered-summary" style="padding:0 20px 14px;font-size:13px;color:var(--text2)"></div>
+        <div id="curso-filtered-summary" style="padding:4px 20px 12px;font-size:12px;color:var(--text2)"></div>
         <div style="overflow-x:auto">
           <table>
             <thead><tr>
-              <th style="width:35%">Curso</th>
+              <th style="width:40%">Curso</th>
               <th style="width:20%">Fecha</th>
               <th style="width:18%">Comisión</th>
-              <th style="width:20%">Nota</th>
-              <th style="width:7%"></th>
+              <th style="width:17%">Nota</th>
+              <th style="width:5%"></th>
             </tr></thead>
             <tbody id="curso-body"></tbody>
           </table>
@@ -908,7 +909,6 @@ function showApp(user){
   loadNombre(user.id);
   setTimeout(checkPerfil, 1500);
   document.getElementById('f-date').value=today();
-  document.getElementById('c-fecha').value=today();
   const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
   
   loadAll();
@@ -1620,25 +1620,23 @@ async function loadCursos(){
 
 async function addCurso(){
   const curso=document.getElementById('c-curso').value.trim();
-  const fecha=document.getElementById('c-fecha').value;
   const monto=parseFloat(document.getElementById('c-monto').value);
   const nota=document.getElementById('c-nota').value.trim();
   const msg=document.getElementById('c-msg');
-  if(!curso){msg.className='field-msg error';msg.textContent='Selecciona un curso.';return;}
-  if(!fecha){msg.className='field-msg error';msg.textContent='Selecciona la fecha.';return;}
-  if(!monto||monto<=0){msg.className='field-msg error';msg.textContent='El monto debe ser mayor a 0.';return;}
-  const btn=document.querySelector('#tab-cursos .btn-primary');
+  if(!curso){msg.className='err';msg.style.display='block';msg.textContent='Selecciona un curso.';return;}
+  const fecha=today();
+  const btn=document.getElementById('btn-add-curso');
   btn.disabled=true;btn.textContent='Guardando...';
   const{data,error}=await sb.from('cursos').insert([{user_id:currentUser.id,curso,fecha,monto,nota:nota||null}]).select();
-  btn.disabled=false;btn.textContent='+ Agregar curso';
-  if(error){msg.className='field-msg error';msg.textContent='Error al guardar.';return;}
+  btn.disabled=false;btn.textContent='+ Registrar';
+  if(error){msg.className='err';msg.style.display='block';msg.textContent='Error al guardar.';return;}
   cursos.unshift(data[0]);
   document.getElementById('c-curso').value='';
   document.getElementById('c-monto').value='';
   document.getElementById('c-nota').value='';
-  msg.className='field-msg success';msg.textContent='✓ Curso registrado';
+  msg.style.display='none';
   updateYearFilters();renderCursos();updateGrand();
-  setTimeout(()=>msg.textContent='',3000);
+  showToast('✓ Curso registrado');
 }
 
 async function deleteCurso(id){
@@ -1662,7 +1660,9 @@ function renderCursos(){
   const total=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
   const now=new Date();const curM=now.getMonth()+1,curY=now.getFullYear();
   const mesTotal=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
-  document.getElementById('c-mini-stats').textContent=`$${total.toFixed(2)} en total · $${mesTotal.toFixed(2)} este mes · ${cursos.length} registros`;
+  document.getElementById('c-section-total').textContent='$'+total.toFixed(2);
+  document.getElementById('c-month-total').textContent='$'+mesTotal.toFixed(2);
+  document.getElementById('c-count-total').textContent=cursos.length;
   const filtTotal=list.reduce((s,c)=>s+parseFloat(c.monto),0);
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   let filtroLabel='';
