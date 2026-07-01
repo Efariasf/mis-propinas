@@ -1952,23 +1952,7 @@ async function loadAdminData() {
 // PWA - Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const swContent = `
-const CACHE = 'mispropinas-v1';
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  if(e.request.method !== 'GET') return;
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-});`;
-    const blob = new Blob([swContent], {type:'application/javascript'});
-    const url = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(url).catch(()=>{});
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
   });
 }
 const manifest = {
