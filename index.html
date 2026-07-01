@@ -1296,13 +1296,16 @@ async function undoCobro(cobroId) {
 
 async function checkPerfil() {
   try {
-    const { data } = await sb.from('perfiles').select('nombre').eq('user_id', currentUser.id).maybeSingle();
+    const { data } = await sb.from('perfiles').select('nombre,email').eq('user_id', currentUser.id).maybeSingle();
     if (!data) {
       const nombre = prompt('¡Bienvenido! ¿Cuál es tu nombre?');
       if (nombre && nombre.trim()) {
         await sb.from('perfiles').insert([{ user_id: currentUser.id, nombre: nombre.trim(), email: currentUser.email }]);
         document.getElementById('user-email').textContent = nombre.trim();
       }
+    } else if (!data.email && currentUser.email) {
+      // Perfil existe pero sin correo — lo actualiza automáticamente
+      await sb.from('perfiles').update({ email: currentUser.email }).eq('user_id', currentUser.id);
     }
   } catch(e) {}
 }
