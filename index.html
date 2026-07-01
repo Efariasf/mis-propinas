@@ -785,6 +785,15 @@ tbody tr:hover td{background:var(--bg2);}
         <div class="admin-metric"><div class="admin-metric-label">Premium vendidas</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
       </div>
 
+      <!-- USUARIOS REGISTRADOS -->
+      <div class="ranking-card" style="margin-bottom:20px">
+        <div class="ranking-header">
+          <h3>👤 Usuarios registrados</h3>
+          <span style="font-size:12px;color:var(--text2)" id="adm-users-count-label"></span>
+        </div>
+        <div id="adm-usuarios-lista"></div>
+      </div>
+
       <!-- RESUMEN POR PERSONA -->
       <div class="ranking-card" style="margin-bottom:20px">
         <div class="ranking-header">
@@ -964,7 +973,7 @@ async function register(){
   btn.disabled=false;btn.textContent='Crear cuenta';
   if(error){msg.className='auth-msg error';msg.textContent=error.message;return;}
   if(data.user){
-    await sb.from('perfiles').insert([{user_id:data.user.id,nombre}]);
+    await sb.from('perfiles').insert([{user_id:data.user.id,nombre,email:data.user.email}]);
     if(data.session){showApp(data.user);}
     else{msg.className='auth-msg success';msg.textContent='✓ Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.';}
   }
@@ -1291,7 +1300,7 @@ async function checkPerfil() {
     if (!data) {
       const nombre = prompt('¡Bienvenido! ¿Cuál es tu nombre?');
       if (nombre && nombre.trim()) {
-        await sb.from('perfiles').insert([{ user_id: currentUser.id, nombre: nombre.trim() }]);
+        await sb.from('perfiles').insert([{ user_id: currentUser.id, nombre: nombre.trim(), email: currentUser.email }]);
         document.getElementById('user-email').textContent = nombre.trim();
       }
     }
@@ -1824,15 +1833,33 @@ async function loadAdminData() {
   const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
   document.getElementById('adm-users').textContent = userIds.length;
 
-  // Fetch nombres y contar usuarios registrados
-  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre');
+  // Fetch perfiles con nombre y correo
+  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre,email');
   document.getElementById('adm-registered').textContent = (perfilesData||[]).length;
   const nombresMap = {};
-  (perfilesData||[]).forEach(p => nombresMap[p.user_id] = p.nombre);
+  const emailsMap = {};
+  (perfilesData||[]).forEach(p => {
+    nombresMap[p.user_id] = p.nombre;
+    emailsMap[p.user_id] = p.email||'';
+  });
 
+  // Lista de usuarios registrados con nombre y correo
+  const usuariosHTML = (perfilesData||[]).map(p => {
+    const iniciales = (p.nombre||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:0.5px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--green);flex-shrink:0">${iniciales}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nombre||'Sin nombre'}</div>
+        <div style="font-size:12px;color:var(--text2)">${p.email||'Sin correo registrado'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('adm-usuarios-lista').innerHTML = usuariosHTML || '<div style="padding:20px;color:var(--text2);font-size:13px">Sin usuarios registrados</div>';
+  document.getElementById('adm-users-count-label').textContent = (perfilesData||[]).length + ' en total';
   // Resumen detallado por persona (aquí sí ya existen userIds y nombresMap)
   const resumenHTML = userIds.map(uid => {
     const nombre = nombresMap[uid] || uid.slice(0,8)+'...';
+    const email = emailsMap[uid] || '';
     const myTips = tips.filter(t=>t.user_id===uid&&new Date(t.date+'T00:00:00').getMonth()+1===curM&&new Date(t.date+'T00:00:00').getFullYear()===curY);
     const myMems = mems.filter(m=>m.user_id===uid&&new Date(m.fecha+'T00:00:00').getMonth()+1===curM&&new Date(m.fecha+'T00:00:00').getFullYear()===curY);
     const tipsTotal = myTips.reduce((s,t)=>s+parseFloat(t.amount),0);
@@ -1842,7 +1869,10 @@ async function loadAdminData() {
     const premiumTotal = premium.reduce((s,m)=>s+parseFloat(m.monto),0);
     const gran = tipsTotal + proTotal + premiumTotal;
     return `<div style="padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;flex-wrap:wrap;gap:12px;align-items:center">
-      <div style="min-width:110px;font-weight:700;font-size:14px">${nombre}</div>
+      <div style="min-width:110px;font-weight:700;font-size:14px">
+        ${nombre}
+        ${email ? `<div style="font-size:11px;font-weight:400;color:var(--text2)">${email}</div>` : ''}
+      </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;flex:1">
         <div style="background:var(--bg2);border-radius:8px;padding:8px 14px;min-width:110px">
           <div style="font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:2px">Propinas</div>
