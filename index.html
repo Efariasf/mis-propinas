@@ -424,9 +424,12 @@ tbody tr:hover td{background:var(--bg2);}
     <div class="install-banner" id="install-banner" style="display:none">
       <div>
         <p>📱 <strong>Instala esta app</strong> en tu teléfono</p>
-        <span>Ábrela como una app real desde tu pantalla de inicio</span>
+        <span id="install-banner-sub">Ábrela como una app real desde tu pantalla de inicio</span>
       </div>
-      <button class="btn-install" onclick="installApp()" id="btn-install-action">Instalar app</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-install" onclick="installApp()" id="btn-install-action">⬇️ Instalar</button>
+        <button onclick="document.getElementById('install-banner').style.display='none'" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 4px">×</button>
+      </div>
     </div>
 
     <!-- ===== PESTAÑA: RESUMEN ===== -->
@@ -1714,8 +1717,28 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   const banner = document.getElementById('install-banner');
-  if (banner) banner.style.display = 'flex';
+  if (banner) {
+    document.getElementById('install-banner-sub').textContent = 'Ábrela como una app real desde tu pantalla de inicio';
+    document.getElementById('btn-install-action').style.display = 'inline-flex';
+    banner.style.display = 'flex';
+  }
 });
+
+// iOS no tiene beforeinstallprompt, mostrar instrucciones manuales
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.navigator.standalone === true;
+if (isIOS && !isInStandalone) {
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const banner = document.getElementById('install-banner');
+      if (banner) {
+        document.getElementById('install-banner-sub').textContent = 'Toca el botón de compartir (⬆️) y luego "Agregar a pantalla de inicio"';
+        document.getElementById('btn-install-action').style.display = 'none';
+        banner.style.display = 'flex';
+      }
+    }, 1500);
+  });
+}
 
 window.addEventListener('appinstalled', () => {
   const banner = document.getElementById('install-banner');
@@ -1926,7 +1949,28 @@ async function loadAdminData() {
   }
 }
 
-// PWA Manifest
+// PWA - Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swContent = `
+const CACHE = 'mispropinas-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if(e.request.method !== 'GET') return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});`;
+    const blob = new Blob([swContent], {type:'application/javascript'});
+    const url = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).catch(()=>{});
+  });
+}
 const manifest = {
   name: "Mis Propinas",
   short_name: "Propinas",
@@ -2054,20 +2098,22 @@ function updateCobro() {
     const premiumPeriodo = mems.filter(m => m.tipo==='PREMIUM' && inRangeM(m.fecha)).reduce((s,m) => s+parseFloat(m.monto), 0);
     const proCountPeriodo = mems.filter(m => m.tipo==='PRO' && inRangeM(m.fecha)).length;
     const premiumCountPeriodo = mems.filter(m => m.tipo==='PREMIUM' && inRangeM(m.fecha)).length;
-    const memTotal = proPeriodo + premiumPeriodo;
+
+    // Cursos del mes — se cobran junto con las membresías
+    const _now = new Date(); const curM = _now.getMonth()+1; const curY = _now.getFullYear();
+    const cursosEsteMes = cursos.filter(c => { const d = new Date(c.fecha+'T00:00:00'); return d.getMonth()+1 === curM && d.getFullYear() === curY; });
+    const cursosPeriodoTotal = cursosEsteMes.reduce((s,c) => s+parseFloat(c.monto), 0);
+
+    const memTotal = proPeriodo + premiumPeriodo + cursosPeriodoTotal;
     const diasLabelMem = pm.diasRestantes + (pm.diasRestantes === 1 ? ' día' : ' días');
     document.getElementById('cobro-monto-mem').textContent = '$' + memTotal.toFixed(2);
     document.getElementById('cobro-periodo-mem').textContent = 'Período: ' + pm.label + ' · ' + diasLabelMem + ' para cobrar';
     document.getElementById('cobro-pro-mem').textContent = proCountPeriodo + ' ($' + proPeriodo.toFixed(2) + ')';
     document.getElementById('cobro-premium-mem').textContent = premiumCountPeriodo + ' ($' + premiumPeriodo.toFixed(2) + ')';
 
-    // Cursos del mes en la tarjeta de membresías
-    const _now = new Date(); const curM = _now.getMonth()+1; const curY = _now.getFullYear();
-    const cursosEsteMes = cursos.filter(c => { const d = new Date(c.fecha+'T00:00:00'); return d.getMonth()+1 === curM && d.getFullYear() === curY; });
     const cursosMemWrap = document.getElementById('cobro-cursos-mem');
     if (cursosEsteMes.length > 0) {
-      const cursosTotal = cursosEsteMes.reduce((s,c) => s+parseFloat(c.monto), 0);
-      document.getElementById('cobro-cursos-mem-monto').textContent = `$${cursosTotal.toFixed(2)} · ${cursosEsteMes.length} vendido${cursosEsteMes.length===1?'':'s'}`;
+      document.getElementById('cobro-cursos-mem-monto').textContent = `$${cursosPeriodoTotal.toFixed(2)} · ${cursosEsteMes.length} vendido${cursosEsteMes.length===1?'':'s'}`;
       cursosMemWrap.style.display = 'block';
     } else {
       cursosMemWrap.style.display = 'none';
@@ -2182,10 +2228,11 @@ function runExport(){
   if(!range){ showToast('Selecciona las dos fechas', true); return; }
   const tipsF=tips.filter(t=>{ if(!range.inicio) return true; const d=new Date(t.date+'T00:00:00'); return d>=range.inicio && d<=range.fin; });
   const memsF=mems.filter(m=>{ if(!range.inicio) return true; const d=new Date(m.fecha+'T00:00:00'); return d>=range.inicio && d<=range.fin; });
-  if(!tipsF.length && !memsF.length){ showToast('No hay datos en ese período', true); return; }
+  const cursosF=cursos.filter(c=>{ if(!range.inicio) return true; const d=new Date(c.fecha+'T00:00:00'); return d>=range.inicio && d<=range.fin; });
+  if(!tipsF.length && !memsF.length && !cursosF.length){ showToast('No hay datos en ese período', true); return; }
   closeExportModal();
-  if(exportFormat==='excel') exportExcelFiltered(tipsF, memsF, range.label);
-  else exportPDFFiltered(tipsF, memsF, range.label);
+  if(exportFormat==='excel') exportExcelFiltered(tipsF, memsF, cursosF, range.label);
+  else exportPDFFiltered(tipsF, memsF, cursosF, range.label);
 }
 
 async function downloadWorkbook(wb, filename){
@@ -2283,7 +2330,7 @@ function buildMonthlySheetStyled(wb, tipsF){
   }
 }
 
-async function exportExcelFiltered(tipsF, memsF, label){
+async function exportExcelFiltered(tipsF, memsF, cursosF, label){
   const wb=new ExcelJS.Workbook();
   if(tipsF.length){
     buildMonthlySheetStyled(wb, tipsF);
@@ -2311,11 +2358,34 @@ async function exportExcelFiltered(tipsF, memsF, label){
       cell.border=BORDER_ALL;
     });
   }
+  if(cursosF && cursosF.length){
+    const ws=wb.addWorksheet('Cursos');
+    const THIN={style:'thin', color:{argb:'FFBFBFBF'}};
+    const BORDER_ALL={top:THIN,left:THIN,bottom:THIN,right:THIN};
+    ws.columns=[{width:36},{width:16},{width:16},{width:26}];
+    const headerRow=ws.addRow(['Curso','Fecha','Comisión (USD)','Nota']);
+    headerRow.eachCell(cell=>{
+      cell.font={bold:true, color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FF1D9E75'}};
+      cell.border=BORDER_ALL;
+    });
+    cursosF.forEach(c=>{
+      const row=ws.addRow([c.curso, fmtDate(c.fecha), parseFloat(c.monto), c.nota||'']);
+      row.eachCell(cell=>cell.border=BORDER_ALL);
+    });
+    const totalCur=cursosF.reduce((s,c)=>s+parseFloat(c.monto),0);
+    const totalRow=ws.addRow(['', 'TOTAL', parseFloat(totalCur.toFixed(2)), '']);
+    totalRow.eachCell(cell=>{
+      cell.font={bold:true};
+      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFE8F5EF'}};
+      cell.border=BORDER_ALL;
+    });
+  }
   await downloadWorkbook(wb, 'mis_propinas_'+label.toLowerCase().replace(/\s+/g,'_')+'.xlsx');
   showToast('✓ Excel descargado');
 }
 
-function exportPDFFiltered(tipsF, memsF, label){
+function exportPDFFiltered(tipsF, memsF, cursosF, label){
   const{jsPDF}=window.jspdf;const doc=new jsPDF();
   const totalTips=tipsF.reduce((s,t)=>s+parseFloat(t.amount),0);
   const totalMems=memsF.reduce((s,m)=>s+parseFloat(m.monto),0);
