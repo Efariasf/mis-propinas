@@ -779,7 +779,8 @@ tbody tr:hover td{background:var(--bg2);}
         <div class="admin-metric"><div class="admin-metric-label">Este mes</div><div class="admin-metric-value" id="adm-month">$0.00</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Propinas</div><div class="admin-metric-value green" id="adm-tips">$0.00</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Membresías</div><div class="admin-metric-value blue" id="adm-mems">$0.00</div></div>
-        <div class="admin-metric"><div class="admin-metric-label">Miembros</div><div class="admin-metric-value" id="adm-users">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Miembros activos</div><div class="admin-metric-value" id="adm-users">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Usuarios registrados</div><div class="admin-metric-value" style="color:var(--green)" id="adm-registered">0</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Pro vendidas</div><div class="admin-metric-value blue" id="adm-pro">0</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Premium vendidas</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
       </div>
@@ -1823,8 +1824,9 @@ async function loadAdminData() {
   const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
   document.getElementById('adm-users').textContent = userIds.length;
 
-  // Fetch nombres
+  // Fetch nombres y contar usuarios registrados
   const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre');
+  document.getElementById('adm-registered').textContent = (perfilesData||[]).length;
   const nombresMap = {};
   (perfilesData||[]).forEach(p => nombresMap[p.user_id] = p.nombre);
 
