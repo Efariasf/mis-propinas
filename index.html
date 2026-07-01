@@ -775,14 +775,14 @@ tbody tr:hover td{background:var(--bg2);}
         <div id="admin-periodo-badge" style="background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:20px;font-size:12px;color:white;font-weight:600;"></div>
       </div>
       <div class="admin-grid">
-        <div class="admin-metric"><div class="admin-metric-label">Total equipo</div><div class="admin-metric-value green" id="adm-total">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Total histórico</div><div class="admin-metric-value green" id="adm-total">$0.00</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Este mes</div><div class="admin-metric-value" id="adm-month">$0.00</div></div>
-        <div class="admin-metric"><div class="admin-metric-label">Propinas</div><div class="admin-metric-value green" id="adm-tips">$0.00</div></div>
-        <div class="admin-metric"><div class="admin-metric-label">Membresías</div><div class="admin-metric-value blue" id="adm-mems">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Propinas (total)</div><div class="admin-metric-value green" id="adm-tips">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Membresías (total)</div><div class="admin-metric-value blue" id="adm-mems">$0.00</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Miembros activos</div><div class="admin-metric-value" id="adm-users">0</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Usuarios registrados</div><div class="admin-metric-value" style="color:var(--green)" id="adm-registered">0</div></div>
-        <div class="admin-metric"><div class="admin-metric-label">Pro vendidas</div><div class="admin-metric-value blue" id="adm-pro">0</div></div>
-        <div class="admin-metric"><div class="admin-metric-label">Premium vendidas</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Pro este mes</div><div class="admin-metric-value blue" id="adm-pro">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Premium este mes</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
       </div>
 
       <!-- USUARIOS REGISTRADOS -->
@@ -812,7 +812,20 @@ tbody tr:hover td{background:var(--bg2);}
       </div>
 
       <div class="ranking-card">
-        <div class="ranking-header"><h3>📊 Todos los registros del equipo</h3></div>
+        <div class="ranking-header">
+          <h3>📊 Todos los registros del equipo</h3>
+          <div class="filters">
+            <select id="adm-fil-year" onchange="renderAdminTable()" style="height:28px;font-size:12px;padding:0 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text)"><option value="">Todos los años</option></select>
+            <select id="adm-fil-month" onchange="renderAdminTable()" style="height:28px;font-size:12px;padding:0 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text)">
+              <option value="">Todos los meses</option>
+              <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+              <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+            </select>
+          </div>
+        </div>
+        <div id="adm-table-summary" style="padding:6px 20px 10px;font-size:12px;color:var(--text2)"></div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
@@ -1833,8 +1846,8 @@ async function loadAdminData() {
   document.getElementById('adm-month').textContent = '$'+(monthTips+monthMems).toFixed(2);
   document.getElementById('adm-tips').textContent = '$'+totalTips.toFixed(2);
   document.getElementById('adm-mems').textContent = '$'+totalMems.toFixed(2);
-  document.getElementById('adm-pro').textContent = mems.filter(m=>m.tipo==='PRO').length;
-  document.getElementById('adm-premium').textContent = mems.filter(m=>m.tipo==='PREMIUM').length;
+  document.getElementById('adm-pro').textContent = mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return m.tipo==='PRO'&&d.getMonth()+1===curM&&d.getFullYear()===curY;}).length;
+  document.getElementById('adm-premium').textContent = mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return m.tipo==='PREMIUM'&&d.getMonth()+1===curM&&d.getFullYear()===curY;}).length;
   document.getElementById('adm-mes-label').textContent = meses[curM-1] + ' ' + curY;
   document.getElementById('adm-mes-label2').textContent = meses[curM-1] + ' ' + curY;
   document.getElementById('admin-periodo-badge').textContent = meses[curM-1] + ' ' + curY;
@@ -1971,20 +1984,48 @@ async function loadAdminData() {
     }).join('');
   }
 
-  // All records table
-  const allRecords = [
+  // Poblar filtros de años en la tabla de registros
+  const admAllRecords = [
     ...tips.map(t => ({ uid: t.user_id, tipo: '💵 Propina', detalle: t.name, fecha: t.date, monto: parseFloat(t.amount) })),
     ...mems.map(m => ({ uid: m.user_id, tipo: m.tipo==='PRO'?'🔵 PRO':'🟡 PREMIUM', detalle: 'Membresía '+m.tipo, fecha: m.fecha, monto: parseFloat(m.monto) }))
-  ].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  ];
+  window._admAllRecords = admAllRecords;
+  window._admNombresMap = nombresMap;
+  const admYears = [...new Set(admAllRecords.map(r=>r.fecha.slice(0,4)))].sort((a,b)=>b-a);
+  const admFY = document.getElementById('adm-fil-year');
+  const admFM = document.getElementById('adm-fil-month');
+  admFY.innerHTML = '<option value="">Todos los años</option>' + admYears.map(y=>`<option value="${y}">${y}</option>`).join('');
+  admFY.value = String(curY);
+  admFM.value = String(curM);
+  renderAdminTable();
+}
 
+function renderAdminTable(){
+  const fy = document.getElementById('adm-fil-year').value;
+  const fm = document.getElementById('adm-fil-month').value;
+  const allRecords = (window._admAllRecords||[]).filter(r => {
+    const d = new Date(r.fecha+'T00:00:00');
+    if(fy && String(d.getFullYear())!==fy) return false;
+    if(fm && String(d.getMonth()+1)!==fm) return false;
+    return true;
+  }).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  const nombresMap = window._admNombresMap||{};
+  const total = allRecords.reduce((s,r)=>s+r.monto,0);
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let label = '';
+  if(fy&&fm) label = `${meses[parseInt(fm)-1]} ${fy}`;
+  else if(fy) label = fy;
+  else if(fm) label = meses[parseInt(fm)-1]+' (todos los años)';
+  else label = 'Todo el historial';
+  document.getElementById('adm-table-summary').textContent = `${allRecords.length} registros · ${label} · Total: $${total.toFixed(2)}`;
   const admBody = document.getElementById('adm-all-body');
-  if (!allRecords.length) {
-    admBody.innerHTML = '<tr><td colspan="5" class="empty-state">Sin registros</td></tr>';
+  if(!allRecords.length){
+    admBody.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--text2)">Sin registros en este período</td></tr>';
   } else {
-    admBody.innerHTML = allRecords.map(r => `<tr>
+    admBody.innerHTML = allRecords.map(r=>`<tr>
       <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${nombresMap[r.uid]||r.uid.slice(0,8)+'...'}</td>
       <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px">${r.tipo}</td>
-      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:500">${r.detalle}</td>
+      <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px">${r.detalle}</td>
       <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:12px;color:var(--text2)">${fmtDate(r.fecha)}</td>
       <td style="padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;font-weight:700;color:var(--green);text-align:right">$${r.monto.toFixed(2)}</td>
     </tr>`).join('');
