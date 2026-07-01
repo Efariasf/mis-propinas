@@ -306,8 +306,8 @@ tbody tr:hover td{background:var(--bg2);}
         </button>
         <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:0.5px;background:var(--border2)"></div><span style="font-size:11px;color:var(--text2)">o con contraseña</span><div style="flex:1;height:0.5px;background:var(--border2)"></div></div>
       </div>
-      <div class="auth-field"><label>Correo electrónico</label><input id="l-email" type="email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter')login()"></div>
-      <div class="auth-field"><label>Contraseña</label><input id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+      <div class="auth-field"><label>Correo electrónico</label><input id="l-email" type="email" placeholder="tu@correo.com" autocomplete="email" onkeydown="if(event.key==='Enter')login()"></div>
+      <div class="auth-field"><label>Contraseña</label><input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
       <div style="text-align:right;margin:-8px 0 12px"><a onclick="showForgotPassword()" style="font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</a></div>
       <button class="btn-auth" onclick="login()">Entrar</button>
       <div id="login-msg" class="auth-msg"></div>
@@ -897,6 +897,12 @@ function showAuth(){
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('auth-wrap').style.display='flex';
   document.getElementById('app-wrap').classList.remove('visible');
+  const savedEmail = localStorage.getItem('last_email');
+  if(savedEmail){
+    const emailField = document.getElementById('l-email');
+    if(emailField) { emailField.value = savedEmail; }
+    setTimeout(()=>{ document.getElementById('l-pass').focus(); }, 100);
+  }
   checkBioLoginButton();
 }
 function showLogin(){document.getElementById('login-form').style.display='block';document.getElementById('register-form').style.display='none';document.getElementById('forgot-form').style.display='none';document.getElementById('login-msg').className='auth-msg';}
@@ -953,6 +959,7 @@ async function login(){
   const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
   btn.disabled=false;btn.textContent='Entrar';
   if(error){msg.className='auth-msg error';msg.textContent='Correo o contraseña incorrectos.';return;}
+  localStorage.setItem('last_email', email);
   if(localStorage.getItem('bio_cred_'+data.user.id) && data.session){
     localStorage.setItem('bio_token_'+data.user.id, data.session.refresh_token);
   }
