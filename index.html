@@ -783,6 +783,8 @@ tbody tr:hover td{background:var(--bg2);}
         <div class="admin-metric"><div class="admin-metric-label">Usuarios registrados</div><div class="admin-metric-value" style="color:var(--green)" id="adm-registered">0</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Pro este mes</div><div class="admin-metric-value blue" id="adm-pro">0</div></div>
         <div class="admin-metric"><div class="admin-metric-label">Premium este mes</div><div class="admin-metric-value" style="color:var(--amber)" id="adm-premium">0</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Cursos (total)</div><div class="admin-metric-value" style="color:var(--green)" id="adm-cursos-total">$0.00</div></div>
+        <div class="admin-metric"><div class="admin-metric-label">Cursos este mes</div><div class="admin-metric-value" style="color:var(--green)" id="adm-cursos-mes">$0.00</div></div>
       </div>
 
       <!-- USUARIOS REGISTRADOS -->
@@ -1848,6 +1850,10 @@ async function loadAdminData() {
   document.getElementById('adm-mems').textContent = '$'+totalMems.toFixed(2);
   document.getElementById('adm-pro').textContent = mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return m.tipo==='PRO'&&d.getMonth()+1===curM&&d.getFullYear()===curY;}).length;
   document.getElementById('adm-premium').textContent = mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return m.tipo==='PREMIUM'&&d.getMonth()+1===curM&&d.getFullYear()===curY;}).length;
+  const totalCursos=cursos.reduce((s,c)=>s+parseFloat(c.monto),0);
+  const mesCursos=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
+  document.getElementById('adm-cursos-total').textContent='$'+totalCursos.toFixed(2);
+  document.getElementById('adm-cursos-mes').textContent='$'+mesCursos.toFixed(2);
   document.getElementById('adm-mes-label').textContent = meses[curM-1] + ' ' + curY;
   document.getElementById('adm-mes-label2').textContent = meses[curM-1] + ' ' + curY;
   document.getElementById('admin-periodo-badge').textContent = meses[curM-1] + ' ' + curY;
