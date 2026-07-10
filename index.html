@@ -1004,7 +1004,7 @@ async function logout(){await sb.auth.signOut({scope:'local'});tips=[];mems=[];c
 
 async function togglePermiso(userId, key, value){
   const{data}=await sb.from('perfiles').select('permisos').eq('user_id',userId).maybeSingle();
-  const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
+  const perms = data?.permisos || {propinas:true,membresias:false,cursos:true};
   perms[key] = value;
   await sb.from('perfiles').update({permisos}).eq('user_id',userId);
   showToast(`✓ Permisos de ${key} ${value?'activados':'desactivados'}`);
@@ -1013,7 +1013,7 @@ async function togglePermiso(userId, key, value){
 async function loadPermisos(){
   try{
     const{data}=await sb.from('perfiles').select('permisos').eq('user_id',currentUser.id).maybeSingle();
-    const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
+    const perms = data?.permisos || {propinas:true,membresias:false,cursos:true};
     const tabs = ['propinas','membresias','cobros'];
     // Pestaña propinas
     const btnProp = document.querySelector('.main-tab[data-tab="propinas"]');
@@ -1901,7 +1901,7 @@ async function loadAdminData() {
   // Lista de usuarios con switches de permisos
   const usuariosHTML = (perfilesData||[]).map(p => {
     const iniciales = (p.nombre||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const perms = p.permisos || {propinas:true,membresias:true,cursos:true};
+    const perms = p.permisos || {propinas:true,membresias:false,cursos:true};
     const esAdmin = (p.user_id === currentUser.id);
     const switchStyle = `display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:${esAdmin?'not-allowed':'pointer'}`;
     const makeSwitch = (key, label) => {
