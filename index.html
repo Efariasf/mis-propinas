@@ -1010,6 +1010,25 @@ async function togglePermiso(userId, key, value){
   showToast(`✓ Permisos de ${key} ${value?'activados':'desactivados'}`);
 }
 
+async function eliminarCuenta(userId, nombre){
+  if(!confirm(`¿Eliminar la cuenta de ${nombre}?\n\nEsto borrará:\n• Su perfil\n• Todas sus propinas\n• Todas sus membresías\n• Todos sus cursos\n• Todos sus cobros\n\nEsta acción no se puede deshacer.`)) return;
+  const confirmacion = prompt(`Escribe ELIMINAR para confirmar que quieres borrar la cuenta de ${nombre}:`);
+  if(confirmacion !== 'ELIMINAR'){ showToast('Eliminación cancelada', true); return; }
+  try {
+    await Promise.all([
+      sb.from('propinas').delete().eq('user_id', userId),
+      sb.from('membresias').delete().eq('user_id', userId),
+      sb.from('cursos').delete().eq('user_id', userId),
+      sb.from('cobros').delete().eq('user_id', userId),
+    ]);
+    await sb.from('perfiles').delete().eq('user_id', userId);
+    showToast(`✓ Cuenta de ${nombre} eliminada`);
+    setTimeout(() => loadAdminPanel(), 800);
+  } catch(e) {
+    showToast('Error al eliminar la cuenta', true);
+  }
+}
+
 async function loadPermisos(){
   try{
     const{data}=await sb.from('perfiles').select('permisos').eq('user_id',currentUser.id).maybeSingle();
@@ -1926,6 +1945,7 @@ async function loadAdminData() {
         ${makeSwitch('propinas','Propinas')}
         ${makeSwitch('membresias','Membresías')}
         ${makeSwitch('cursos','Cursos')}
+        ${!esAdmin ? `<button onclick="eliminarCuenta('${p.user_id}','${(p.nombre||'este usuario').replace(/'/g,"\\'")}\")" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0">🗑 Eliminar</button>` : ''}
       </div>
     </div>`;
   }).join('');
