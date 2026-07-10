@@ -1000,7 +1000,32 @@ async function register(){
     else{msg.className='auth-msg success';msg.textContent='✓ Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.';}
   }
 }
-async function logout(){await sb.auth.signOut({scope:'local'});tips=[];mems=[];currentUser=null;showAuth();}
+async function logout(){await sb.auth.signOut({scope:'local'});tips=[];mems=[];cursos=[];currentUser=null;showAuth();}
+
+async function togglePermiso(userId, key, value){
+  const{data}=await sb.from('perfiles').select('permisos').eq('user_id',userId).maybeSingle();
+  const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
+  perms[key] = value;
+  await sb.from('perfiles').update({permisos}).eq('user_id',userId);
+  showToast(`✓ Permisos de ${key} ${value?'activados':'desactivados'}`);
+}
+
+async function loadPermisos(){
+  try{
+    const{data}=await sb.from('perfiles').select('permisos').eq('user_id',currentUser.id).maybeSingle();
+    const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
+    const tabs = ['propinas','membresias','cobros'];
+    // Pestaña propinas
+    const btnProp = document.querySelector('.main-tab[data-tab="propinas"]');
+    if(btnProp) btnProp.style.display = perms.propinas!==false ? '' : 'none';
+    // Pestaña membresías & cursos — visible si tiene al menos uno de los dos
+    const btnMem = document.querySelector('.main-tab[data-tab="membresias"]');
+    if(btnMem) btnMem.style.display = (perms.membresias!==false||perms.cursos!==false) ? '' : 'none';
+    // Dentro del formulario, ocultar el botón de curso si no tiene permiso
+    const tabRegCur = document.getElementById('tab-reg-cur');
+    if(tabRegCur) tabRegCur.style.display = perms.cursos!==false ? '' : 'none';
+  }catch(e){}
+}
 
 /* ===== BIOMETRÍA (WebAuthn / Passkeys) ===== */
 function bioKey(userId){ return 'bio_cred_' + userId; }
@@ -1352,6 +1377,7 @@ async function loadAll(){
   await loadCobros();
   await loadMeta();
   await loadCursos();
+  await loadPermisos();
   checkAdmin();
 }
 
@@ -1863,7 +1889,7 @@ async function loadAdminData() {
   document.getElementById('adm-users').textContent = userIds.length;
 
   // Fetch perfiles con nombre y correo
-  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre,email');
+  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre,email,permisos');
   document.getElementById('adm-registered').textContent = (perfilesData||[]).length;
   const nombresMap = {};
   const emailsMap = {};
@@ -1872,14 +1898,34 @@ async function loadAdminData() {
     emailsMap[p.user_id] = p.email||'';
   });
 
-  // Lista de usuarios registrados con nombre y correo
+  // Lista de usuarios con switches de permisos
   const usuariosHTML = (perfilesData||[]).map(p => {
     const iniciales = (p.nombre||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:0.5px solid var(--border)">
+    const perms = p.permisos || {propinas:true,membresias:true,cursos:true};
+    const esAdmin = (p.user_id === currentUser.id);
+    const switchStyle = `display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:${esAdmin?'not-allowed':'pointer'}`;
+    const makeSwitch = (key, label) => {
+      const on = perms[key]!==false;
+      const disabled = esAdmin ? 'disabled' : '';
+      return `<label style="${switchStyle}" title="${esAdmin?'No puedes editar tu propio perfil':''}">
+        <span style="position:relative;display:inline-block;width:32px;height:18px">
+          <input type="checkbox" ${on?'checked':''} ${disabled} onchange="togglePermiso('${p.user_id}','${key}',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+          <span style="position:absolute;inset:0;background:${on?'var(--green)':'var(--border2)'};border-radius:18px;transition:.2s"></span>
+          <span style="position:absolute;top:2px;left:${on?'14':'2'}px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s"></span>
+        </span>
+        ${label}
+      </label>`;
+    };
+    return `<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:0.5px solid var(--border);flex-wrap:wrap">
       <div style="width:36px;height:36px;border-radius:50%;background:rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--green);flex-shrink:0">${iniciales}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nombre||'Sin nombre'}</div>
+      <div style="flex:1;min-width:120px">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nombre||'Sin nombre'} ${esAdmin?'<span style="font-size:10px;background:rgba(29,158,117,0.15);color:var(--green);padding:2px 6px;border-radius:4px;font-weight:500">Admin</span>':''}</div>
         <div style="font-size:12px;color:var(--text2)">${p.email||'Sin correo registrado'}</div>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+        ${makeSwitch('propinas','Propinas')}
+        ${makeSwitch('membresias','Membresías')}
+        ${makeSwitch('cursos','Cursos')}
       </div>
     </div>`;
   }).join('');
