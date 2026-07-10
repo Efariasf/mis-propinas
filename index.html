@@ -1928,7 +1928,7 @@ async function loadAdminData() {
       const disabled = esAdmin ? 'disabled' : '';
       return `<label style="${switchStyle}" title="${esAdmin?'No puedes editar tu propio perfil':''}">
         <span style="position:relative;display:inline-block;width:32px;height:18px">
-          <input type="checkbox" ${on?'checked':''} ${disabled} onchange="togglePermiso('${p.user_id}','${key}',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+          <input type="checkbox" ${on?'checked':''} ${disabled} class="perm-switch" data-uid="${p.user_id}" data-key="${key}" style="opacity:0;width:0;height:0;position:absolute">
           <span style="position:absolute;inset:0;background:${on?'var(--green)':'var(--border2)'};border-radius:18px;transition:.2s"></span>
           <span style="position:absolute;top:2px;left:${on?'14':'2'}px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s"></span>
         </span>
@@ -1945,12 +1945,29 @@ async function loadAdminData() {
         ${makeSwitch('propinas','Propinas')}
         ${makeSwitch('membresias','Membresías')}
         ${makeSwitch('cursos','Cursos')}
-        ${!esAdmin ? `<button onclick="eliminarCuenta('${p.user_id}','${(p.nombre||'este usuario').replace(/'/g,"\\'")}\")" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0">🗑 Eliminar</button>` : ''}
+        ${!esAdmin ? `<button class="btn-eliminar-cuenta" data-uid="${p.user_id}" data-nombre="${(p.nombre||'este usuario').replace(/"/g,'&quot;')}" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0">🗑 Eliminar</button>` : ''}
       </div>
     </div>`;
   }).join('');
   document.getElementById('adm-usuarios-lista').innerHTML = usuariosHTML || '<div style="padding:20px;color:var(--text2);font-size:13px">Sin usuarios registrados</div>';
   document.getElementById('adm-users-count-label').textContent = (perfilesData||[]).length + ' en total';
+
+  // Event delegation para switches y botón eliminar
+  document.getElementById('adm-usuarios-lista').onclick = async (e) => {
+    const btn = e.target.closest('.btn-eliminar-cuenta');
+    if(btn) { eliminarCuenta(btn.dataset.uid, btn.dataset.nombre); return; }
+  };
+  document.getElementById('adm-usuarios-lista').onchange = async (e) => {
+    const sw = e.target.closest('.perm-switch');
+    if(sw) {
+      togglePermiso(sw.dataset.uid, sw.dataset.key, sw.checked);
+      // Actualizar el color del track visualmente
+      const track = sw.nextElementSibling;
+      const thumb = track?.nextElementSibling;
+      if(track) track.style.background = sw.checked ? 'var(--green)' : 'var(--border2)';
+      if(thumb) thumb.style.left = sw.checked ? '14px' : '2px';
+    }
+  };
   // Resumen detallado por persona (aquí sí ya existen userIds y nombresMap)
   const resumenHTML = userIds.map(uid => {
     const nombre = nombresMap[uid] || uid.slice(0,8)+'...';
