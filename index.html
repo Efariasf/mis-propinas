@@ -1004,10 +1004,11 @@ async function logout(){await sb.auth.signOut({scope:'local'});tips=[];mems=[];c
 
 async function togglePermiso(userId, key, value){
   const{data}=await sb.from('perfiles').select('permisos').eq('user_id',userId).maybeSingle();
-  const perms = data?.permisos || {propinas:true,membresias:false,cursos:true};
+  const perms = data?.permisos ? {...data.permisos} : {propinas:true,membresias:true,cursos:true};
   perms[key] = value;
-  await sb.from('perfiles').update({permisos}).eq('user_id',userId);
-  showToast(`✓ Permisos de ${key} ${value?'activados':'desactivados'}`);
+  const{error}=await sb.from('perfiles').update({permisos: perms}).eq('user_id',userId);
+  if(error){ showToast('Error al guardar permisos: '+error.message, true); return; }
+  showToast(`✓ ${key.charAt(0).toUpperCase()+key.slice(1)} ${value?'activado':'desactivado'} para ese usuario`);
 }
 
 async function eliminarCuenta(userId, nombre){
@@ -1029,20 +1030,34 @@ async function eliminarCuenta(userId, nombre){
   }
 }
 
+let userComisiones = {pro: 10, premium: 30};
+
 async function loadPermisos(){
   try{
-    const{data}=await sb.from('perfiles').select('permisos').eq('user_id',currentUser.id).maybeSingle();
-    const perms = data?.permisos || {propinas:true,membresias:false,cursos:true};
-    const tabs = ['propinas','membresias','cobros'];
+    const{data}=await sb.from('perfiles').select('permisos,comisiones').eq('user_id',currentUser.id).maybeSingle();
+    const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
+    userComisiones = data?.comisiones || {pro:10,premium:30};
+
+    // Actualizar el dropdown con los precios reales del usuario
+    const optPro = document.querySelector('#m-tipo option[value="PRO"]');
+    const optPremium = document.querySelector('#m-tipo option[value="PREMIUM"]');
+    if(optPro) optPro.textContent = `PRO — $${userComisiones.pro}`;
+    if(optPremium) optPremium.textContent = `PREMIUM — $${userComisiones.premium}`;
+
     // Pestaña propinas
     const btnProp = document.querySelector('.main-tab[data-tab="propinas"]');
     if(btnProp) btnProp.style.display = perms.propinas!==false ? '' : 'none';
-    // Pestaña membresías & cursos — visible si tiene al menos uno de los dos
+    // Pestaña membresías & cursos
     const btnMem = document.querySelector('.main-tab[data-tab="membresias"]');
     if(btnMem) btnMem.style.display = (perms.membresias!==false||perms.cursos!==false) ? '' : 'none';
-    // Dentro del formulario, ocultar el botón de curso si no tiene permiso
+    // Botón de curso dentro del formulario
     const tabRegCur = document.getElementById('tab-reg-cur');
     if(tabRegCur) tabRegCur.style.display = perms.cursos!==false ? '' : 'none';
+    // Botón de membresía dentro del formulario
+    const tabRegMem = document.getElementById('tab-reg-mem');
+    if(tabRegMem) tabRegMem.style.display = perms.membresias!==false ? '' : 'none';
+    // Si no tiene membresías, mostrar cursos por defecto
+    if(perms.membresias===false && perms.cursos!==false) showRegTab('cur');
   }catch(e){}
 }
 
@@ -1505,12 +1520,16 @@ function getMesActual(){
   return meses[now.getMonth()]+' '+now.getFullYear();
 }
 
-function updateMonto(){document.getElementById('m-monto').value=document.getElementById('m-tipo').value==='PRO'?'10.00':'30.00';}
+function updateMonto(){
+  const tipo=document.getElementById('m-tipo').value;
+  const monto=tipo==='PRO'?userComisiones.pro:userComisiones.premium;
+  document.getElementById('m-monto').value=monto;
+}
 async function addMembresia(){
   const tipo=document.getElementById('m-tipo').value;
   const now=new Date();
   const fecha=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
-  const monto=tipo==='PRO'?10:30;
+  const monto=tipo==='PRO'?userComisiones.pro:userComisiones.premium;
   const nota='';
   const err=document.getElementById('mem-error');
   err.style.display='none';
