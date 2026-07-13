@@ -438,7 +438,7 @@ tbody tr:hover td{background:var(--bg2);}
       <div class="sections-grid" style="margin-bottom:24px">
 
         <!-- COBRO DE PROPINAS -->
-        <div class="cobro-card" style="margin-bottom:0">
+        <div class="cobro-card" id="cobro-card-prop" style="margin-bottom:0">
         <div class="cobro-header">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
             <div class="cobro-title">💵 Cobro de propinas</div>
@@ -455,7 +455,7 @@ tbody tr:hover td{background:var(--bg2);}
         </div>
 
         <!-- COBRO DE MEMBRESÍAS (siempre mensual, sin importar el ciclo de propinas) -->
-        <div class="cobro-card" style="margin-bottom:0">
+        <div class="cobro-card" id="cobro-card-mem" style="margin-bottom:0">
           <div class="cobro-header">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
               <div class="cobro-title">🏆 Cobro de membresías</div>
@@ -1038,26 +1038,38 @@ async function loadPermisos(){
     const perms = data?.permisos || {propinas:true,membresias:true,cursos:true};
     userComisiones = data?.comisiones || {pro:10,premium:30};
 
-    // Actualizar el dropdown con los precios reales del usuario
+    const tieneProp = perms.propinas !== false;
+    const tieneMem  = perms.membresias !== false;
+    const tieneCur  = perms.cursos !== false;
+
+    // ── Pestañas de navegación ──
+    const btnProp = document.querySelector('.main-tab[data-tab="propinas"]');
+    if(btnProp) btnProp.style.display = tieneProp ? '' : 'none';
+    const btnMem = document.querySelector('.main-tab[data-tab="membresias"]');
+    if(btnMem) btnMem.style.display = (tieneMem || tieneCur) ? '' : 'none';
+
+    // ── Tarjetas del Resumen ──
+    const cardProp = document.getElementById('cobro-card-prop');
+    if(cardProp) cardProp.style.display = tieneProp ? '' : 'none';
+    const cardMem = document.getElementById('cobro-card-mem');
+    if(cardMem) cardMem.style.display = tieneMem ? '' : 'none';
+
+    // ── Dentro del formulario de Membresías & Cursos ──
+    const tabRegMem = document.getElementById('tab-reg-mem');
+    if(tabRegMem) tabRegMem.style.display = tieneMem ? '' : 'none';
+    const tabRegCur = document.getElementById('tab-reg-cur');
+    if(tabRegCur) tabRegCur.style.display = tieneCur ? '' : 'none';
+
+    // Si solo tiene uno de los dos, mostrar ese directamente sin botón de toggle
+    if(tieneMem && !tieneCur) showRegTab('mem');
+    else if(!tieneMem && tieneCur) showRegTab('cur');
+
+    // ── Actualizar dropdown de membresías con precios personales ──
     const optPro = document.querySelector('#m-tipo option[value="PRO"]');
     const optPremium = document.querySelector('#m-tipo option[value="PREMIUM"]');
     if(optPro) optPro.textContent = `PRO — $${userComisiones.pro}`;
     if(optPremium) optPremium.textContent = `PREMIUM — $${userComisiones.premium}`;
 
-    // Pestaña propinas
-    const btnProp = document.querySelector('.main-tab[data-tab="propinas"]');
-    if(btnProp) btnProp.style.display = perms.propinas!==false ? '' : 'none';
-    // Pestaña membresías & cursos
-    const btnMem = document.querySelector('.main-tab[data-tab="membresias"]');
-    if(btnMem) btnMem.style.display = (perms.membresias!==false||perms.cursos!==false) ? '' : 'none';
-    // Botón de curso dentro del formulario
-    const tabRegCur = document.getElementById('tab-reg-cur');
-    if(tabRegCur) tabRegCur.style.display = perms.cursos!==false ? '' : 'none';
-    // Botón de membresía dentro del formulario
-    const tabRegMem = document.getElementById('tab-reg-mem');
-    if(tabRegMem) tabRegMem.style.display = perms.membresias!==false ? '' : 'none';
-    // Si no tiene membresías, mostrar cursos por defecto
-    if(perms.membresias===false && perms.cursos!==false) showRegTab('cur');
   }catch(e){}
 }
 
