@@ -1907,8 +1907,8 @@ async function loadAdminData() {
   const userIds = [...new Set([...tips.map(t=>t.user_id), ...mems.map(m=>m.user_id)])];
   document.getElementById('adm-users').textContent = userIds.length;
 
-  // Fetch perfiles con nombre y correo
-  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre,email,permisos');
+  // Fetch perfiles con nombre, correo, permisos y comisiones
+  const { data: perfilesData } = await sb.from('perfiles').select('user_id,nombre,email,permisos,comisiones');
   document.getElementById('adm-registered').textContent = (perfilesData||[]).length;
   const nombresMap = {};
   const emailsMap = {};
@@ -1917,10 +1917,11 @@ async function loadAdminData() {
     emailsMap[p.user_id] = p.email||'';
   });
 
-  // Lista de usuarios con switches de permisos
+  // Lista de usuarios con switches de permisos y comisiones editables
   const usuariosHTML = (perfilesData||[]).map(p => {
     const iniciales = (p.nombre||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const perms = p.permisos || {propinas:true,membresias:false,cursos:true};
+    const coms = p.comisiones || {pro:10,premium:30};
     const esAdmin = (p.user_id === currentUser.id);
     const switchStyle = `display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:${esAdmin?'not-allowed':'pointer'}`;
     const makeSwitch = (key, label) => {
@@ -1935,37 +1936,62 @@ async function loadAdminData() {
         ${label}
       </label>`;
     };
-    return `<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:0.5px solid var(--border);flex-wrap:wrap">
-      <div style="width:36px;height:36px;border-radius:50%;background:rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--green);flex-shrink:0">${iniciales}</div>
-      <div style="flex:1;min-width:120px">
-        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nombre||'Sin nombre'} ${esAdmin?'<span style="font-size:10px;background:rgba(29,158,117,0.15);color:var(--green);padding:2px 6px;border-radius:4px;font-weight:500">Admin</span>':''}</div>
-        <div style="font-size:12px;color:var(--text2)">${p.email||'Sin correo registrado'}</div>
+    const inputStyle = `width:54px;height:28px;border:0.5px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;text-align:center;padding:0 4px`;
+    return `<div style="padding:14px 20px;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--green);flex-shrink:0">${iniciales}</div>
+        <div style="flex:1;min-width:120px">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nombre||'Sin nombre'} ${esAdmin?'<span style="font-size:10px;background:rgba(29,158,117,0.15);color:var(--green);padding:2px 6px;border-radius:4px;font-weight:500">Admin</span>':''}</div>
+          <div style="font-size:12px;color:var(--text2)">${p.email||'Sin correo registrado'}</div>
+        </div>
+        ${!esAdmin ? `<button class="btn-eliminar-cuenta" data-uid="${p.user_id}" data-nombre="${(p.nombre||'este usuario').replace(/"/g,'&quot;')}" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🗑 Eliminar</button>` : ''}
       </div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
         ${makeSwitch('propinas','Propinas')}
         ${makeSwitch('membresias','Membresías')}
         ${makeSwitch('cursos','Cursos')}
-        ${!esAdmin ? `<button class="btn-eliminar-cuenta" data-uid="${p.user_id}" data-nombre="${(p.nombre||'este usuario').replace(/"/g,'&quot;')}" style="background:none;border:0.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0">🗑 Eliminar</button>` : ''}
+        <span style="font-size:11px;color:var(--text2);margin-left:6px">|</span>
+        <span style="font-size:12px;color:var(--text2)">Comisión
+          <label style="margin-left:6px;font-size:12px;color:var(--text2)">PRO $<input class="com-input" type="number" data-uid="${p.user_id}" data-key="pro" value="${coms.pro||10}" ${esAdmin?'disabled':''} style="${inputStyle}"></label>
+          <label style="margin-left:8px;font-size:12px;color:var(--text2)">PREMIUM $<input class="com-input" type="number" data-uid="${p.user_id}" data-key="premium" value="${coms.premium||30}" ${esAdmin?'disabled':''} style="${inputStyle}"></label>
+          ${!esAdmin?`<button class="btn-guardar-com" data-uid="${p.user_id}" style="margin-left:8px;background:var(--green);color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">Guardar</button>`:''}
+        </span>
       </div>
     </div>`;
   }).join('');
   document.getElementById('adm-usuarios-lista').innerHTML = usuariosHTML || '<div style="padding:20px;color:var(--text2);font-size:13px">Sin usuarios registrados</div>';
   document.getElementById('adm-users-count-label').textContent = (perfilesData||[]).length + ' en total';
 
-  // Event delegation para switches y botón eliminar
-  document.getElementById('adm-usuarios-lista').onclick = async (e) => {
-    const btn = e.target.closest('.btn-eliminar-cuenta');
-    if(btn) { eliminarCuenta(btn.dataset.uid, btn.dataset.nombre); return; }
+  // Event delegation — clicks (eliminar y guardar comisiones)
+  const lista = document.getElementById('adm-usuarios-lista');
+  lista.onclick = null;
+  lista.onchange = null;
+  lista.onclick = async (e) => {
+    const btnEl = e.target.closest('.btn-eliminar-cuenta');
+    if (btnEl) {
+      eliminarCuenta(btnEl.dataset.uid, btnEl.dataset.nombre);
+      return;
+    }
+    const btnCom = e.target.closest('.btn-guardar-com');
+    if (btnCom) {
+      const uid = btnCom.dataset.uid;
+      const proInput = lista.querySelector(`.com-input[data-uid="${uid}"][data-key="pro"]`);
+      const premiumInput = lista.querySelector(`.com-input[data-uid="${uid}"][data-key="premium"]`);
+      const proVal = parseFloat(proInput?.value) || 10;
+      const premiumVal = parseFloat(premiumInput?.value) || 30;
+      await sb.from('perfiles').update({ comisiones: { pro: proVal, premium: premiumVal } }).eq('user_id', uid);
+      showToast('✓ Comisiones actualizadas');
+    }
   };
-  document.getElementById('adm-usuarios-lista').onchange = async (e) => {
+  // Event delegation — cambios en switches
+  lista.onchange = async (e) => {
     const sw = e.target.closest('.perm-switch');
-    if(sw) {
-      togglePermiso(sw.dataset.uid, sw.dataset.key, sw.checked);
-      // Actualizar el color del track visualmente
+    if (sw) {
+      await togglePermiso(sw.dataset.uid, sw.dataset.key, sw.checked);
       const track = sw.nextElementSibling;
       const thumb = track?.nextElementSibling;
-      if(track) track.style.background = sw.checked ? 'var(--green)' : 'var(--border2)';
-      if(thumb) thumb.style.left = sw.checked ? '14px' : '2px';
+      if (track) track.style.background = sw.checked ? 'var(--green)' : 'var(--border2)';
+      if (thumb) thumb.style.left = sw.checked ? '14px' : '2px';
     }
   };
   // Resumen detallado por persona (aquí sí ya existen userIds y nombresMap)
