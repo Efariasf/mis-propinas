@@ -589,8 +589,17 @@ tbody tr:hover td{background:var(--bg2);}
           <div class="field"><label>Monto $</label><input id="f-amount" type="number" min="0" step="0.01" placeholder="0.00"></div>
           <div class="field"><label>Nota</label><input id="f-note" type="text" placeholder="Opcional..."></div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <button class="btn-primary" id="btn-add" onclick="addTip()">+ Agregar</button>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+            <span style="position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0">
+              <input type="checkbox" id="f-descuento" onchange="toggleDescuento(this)" style="opacity:0;width:0;height:0;position:absolute">
+              <span id="f-desc-track" style="position:absolute;inset:0;background:var(--border2);border-radius:20px;transition:.2s"></span>
+              <span id="f-desc-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s"></span>
+            </span>
+            <span id="f-desc-label" style="font-size:13px;color:var(--text2)">Es un descuento</span>
+          </label>
+          <span id="f-desc-preview" style="font-size:12px;color:var(--text2)"></span>
           <span class="err" id="form-error">Completa nombre, fecha y monto.</span>
         </div>
       </div>
@@ -1428,25 +1437,50 @@ async function loadAll(){
 }
 
 // TIPS
+function toggleDescuento(el){
+  const track=document.getElementById('f-desc-track');
+  const thumb=document.getElementById('f-desc-thumb');
+  const label=document.getElementById('f-desc-label');
+  const btn=document.getElementById('btn-add');
+  if(el.checked){
+    track.style.background='var(--red)';
+    thumb.style.left='19px';
+    label.style.color='var(--red)';
+    label.style.fontWeight='600';
+    btn.style.background='var(--red)';
+    btn.textContent='− Aplicar descuento';
+  } else {
+    track.style.background='var(--border2)';
+    thumb.style.left='3px';
+    label.style.color='var(--text2)';
+    label.style.fontWeight='400';
+    btn.style.background='';
+    btn.textContent='+ Agregar';
+  }
+}
+
 async function addTip(){
   const name=document.getElementById('f-name').value.trim();
   const date=document.getElementById('f-date').value;
-  const amount=parseFloat(document.getElementById('f-amount').value);
+  const rawAmount=parseFloat(document.getElementById('f-amount').value);
   const note=document.getElementById('f-note').value.trim();
+  const esDescuento=document.getElementById('f-descuento').checked;
   const err=document.getElementById('form-error');
-  if(!name||!date||isNaN(amount)||amount<=0){err.style.display='inline';return;}
+  if(!name||!date||isNaN(rawAmount)||rawAmount<=0){err.style.display='inline';return;}
   err.style.display='none';
+  const amount=esDescuento ? -rawAmount : rawAmount;
   const btn=document.getElementById('btn-add');
   btn.disabled=true;btn.textContent='Guardando...';
   const{data,error}=await sb.from('propinas').insert([{user_id:currentUser.id,name,date,amount,note}]).select();
-  btn.disabled=false;btn.textContent='+ Agregar';
+  btn.disabled=false;
+  btn.textContent=esDescuento?'− Aplicar descuento':'+ Agregar';
   if(error){showToast('Error al guardar',true);return;}
   tips.unshift(data[0]);
   document.getElementById('f-name').value='';document.getElementById('f-amount').value='';
   document.getElementById('f-note').value='';document.getElementById('f-date').value=today();
   const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
   updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
-  showToast('✓ Propina guardada');
+  showToast(esDescuento?'✓ Descuento aplicado':'✓ Propina guardada');
 }
 async function deleteTip(id){
   if(!confirm('¿Eliminar esta propina?'))return;
@@ -1512,16 +1546,24 @@ function renderTips(){
     : (fs ? `${list.length} resultado${list.length===1?'':'s'} para "${fs}" · Total: $${filteredTotal.toFixed(2)}` : '');
   const tbody=document.getElementById('tip-body');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🧾</div>Sin propinas aún.</div></td></tr>`;return;}
-  tbody.innerHTML=list.map(t=>`<tr>
-    <td style="font-weight:600">${t.name}</td>
+  tbody.innerHTML=list.map(t=>{
+    const esDescuento = parseFloat(t.amount) < 0;
+    const montoAbs = Math.abs(parseFloat(t.amount)).toFixed(2);
+    return `<tr>
+    <td style="font-weight:600">
+      ${t.name}
+      ${esDescuento ? '<span style="font-size:10px;background:rgba(226,75,74,0.12);color:var(--red);padding:2px 6px;border-radius:4px;font-weight:500;margin-left:6px">descuento</span>' : ''}
+    </td>
     <td><span class="date-badge">${fmtDate(t.date)}</span></td>
-    <td class="amount">$${parseFloat(t.amount).toFixed(2)}</td>
+    <td class="${esDescuento?'':'amount'}" style="${esDescuento?'color:var(--red);font-weight:600':''}">
+      ${esDescuento?'−':'+'}$${montoAbs}
+    </td>
     <td class="note-text">${t.note||'—'}</td>
     <td><div class="action-btns">
       <button class="btn-edit" onclick="openEditTip('${t.id}')" title="Editar">✏️</button>
       <button class="btn-del" onclick="deleteTip('${t.id}')" title="Eliminar">🗑</button>
     </div></td>
-  </tr>`).join('');
+  </tr>`;}).join('');join('');
 }
 
 // MEMS
