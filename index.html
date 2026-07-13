@@ -2571,56 +2571,164 @@ function buildMonthlySheetStyled(wb, tipsF){
 }
 
 async function exportExcelFiltered(tipsF, memsF, cursosF, label){
-  const wb=new ExcelJS.Workbook();
-  if(tipsF.length){
-    buildMonthlySheetStyled(wb, tipsF);
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Ganancias');
+  ws.columns = [{width:14},{width:32},{width:16},{width:6}];
+
+  const THIN = {style:'thin', color:{argb:'FFBFBFBF'}};
+  const B = {top:THIN,left:THIN,bottom:THIN,right:THIN};
+  const VERDE   = 'FF1D9E75'; const VERDE_CLR = 'FFE8F5EF'; const VERDE_TXT = 'FF085041';
+  const AZUL    = 'FF185FA5'; const AZUL_CLR  = 'FFEBF2FA'; const AZUL_TXT  = 'FF042C53';
+  const MORADO  = 'FF7F77DD'; const MORADO_CLR= 'FFEEEDFE'; const MORADO_TXT= 'FF3C3489';
+  const OSCURO  = 'FF2C2C2A';
+  const ROJO    = 'FFA32D2D';
+
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  // Agrupar todo por mes
+  const mesKeys = new Set([
+    ...tipsF.map(t => t.date.slice(0,7)),
+    ...memsF.map(m => m.fecha.slice(0,7)),
+    ...(cursosF||[]).map(c => c.fecha.slice(0,7))
+  ]);
+  const mesesOrdenados = [...mesKeys].sort();
+
+  let granTotalGeneral = 0;
+
+  for (const mesKey of mesesOrdenados) {
+    const [y, m] = mesKey.split('-');
+    const mesLabel = meses[parseInt(m)-1].toUpperCase() + ' ' + y;
+    const tipsM  = tipsF.filter(t => t.date.startsWith(mesKey));
+    const memsM  = memsF.filter(m => m.fecha.startsWith(mesKey));
+    const cursosM = (cursosF||[]).filter(c => c.fecha.startsWith(mesKey));
+
+    let granTotalMes = 0;
+
+    // ── PROPINAS ──
+    if (tipsM.length) {
+      const hdrTip = ws.addRow(['PROPINAS ' + mesLabel, '', '']);
+      ws.mergeCells(hdrTip.number, 1, hdrTip.number, 3);
+      hdrTip.getCell(1).font = {bold:true, color:{argb:'FFFFFFFF'}};
+      hdrTip.getCell(1).fill = {type:'pattern', pattern:'solid', fgColor:{argb:VERDE}};
+      hdrTip.getCell(1).alignment = {horizontal:'center'};
+      hdrTip.eachCell(cell => cell.border = B);
+
+      const colTip = ws.addRow(['FECHA','CLIENTE','PROPINA']);
+      colTip.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:VERDE_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:VERDE_CLR}};
+        cell.border = B;
+      });
+
+      let totalTipsMes = 0;
+      tipsM.sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
+        const amt = parseFloat(t.amount);
+        const esDesc = amt < 0;
+        const row = ws.addRow([fmtDate(t.date), esDesc ? t.name + ' (descuento)' : t.name, parseFloat(amt.toFixed(2))]);
+        row.eachCell(cell => cell.border = B);
+        if (esDesc) {
+          row.getCell(2).font = {italic:true, color:{argb:ROJO}};
+          row.getCell(3).font = {color:{argb:ROJO}};
+        }
+        totalTipsMes += amt;
+      });
+
+      const totalTipRow = ws.addRow(['', 'TOTAL PROPINAS', parseFloat(totalTipsMes.toFixed(2))]);
+      totalTipRow.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:VERDE_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:VERDE_CLR}};
+        cell.border = B;
+      });
+      granTotalMes += totalTipsMes;
+    }
+
+    // ── MEMBRESÍAS ──
+    if (memsM.length) {
+      ws.addRow([]);
+      const hdrMem = ws.addRow(['MEMBRESÍAS ' + mesLabel, '', '']);
+      ws.mergeCells(hdrMem.number, 1, hdrMem.number, 3);
+      hdrMem.getCell(1).font = {bold:true, color:{argb:'FFFFFFFF'}};
+      hdrMem.getCell(1).fill = {type:'pattern', pattern:'solid', fgColor:{argb:AZUL}};
+      hdrMem.getCell(1).alignment = {horizontal:'center'};
+      hdrMem.eachCell(cell => cell.border = B);
+
+      const colMem = ws.addRow(['TIPO','DETALLE','GANANCIA']);
+      colMem.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:AZUL_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:AZUL_CLR}};
+        cell.border = B;
+      });
+
+      let totalMemMes = 0;
+      memsM.forEach(m => {
+        const row = ws.addRow([m.tipo, 'Membresía ' + m.tipo, parseFloat(m.monto)]);
+        row.eachCell(cell => cell.border = B);
+        totalMemMes += parseFloat(m.monto);
+      });
+
+      const totalMemRow = ws.addRow(['', 'TOTAL MEMBRESÍAS', parseFloat(totalMemMes.toFixed(2))]);
+      totalMemRow.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:AZUL_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:AZUL_CLR}};
+        cell.border = B;
+      });
+      granTotalMes += totalMemMes;
+    }
+
+    // ── CURSOS ──
+    if (cursosM.length) {
+      ws.addRow([]);
+      const hdrCur = ws.addRow(['CURSOS ' + mesLabel, '', '']);
+      ws.mergeCells(hdrCur.number, 1, hdrCur.number, 3);
+      hdrCur.getCell(1).font = {bold:true, color:{argb:'FFFFFFFF'}};
+      hdrCur.getCell(1).fill = {type:'pattern', pattern:'solid', fgColor:{argb:MORADO}};
+      hdrCur.getCell(1).alignment = {horizontal:'center'};
+      hdrCur.eachCell(cell => cell.border = B);
+
+      const colCur = ws.addRow(['FECHA','CURSO','COMISIÓN']);
+      colCur.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:MORADO_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:MORADO_CLR}};
+        cell.border = B;
+      });
+
+      let totalCurMes = 0;
+      cursosM.forEach(c => {
+        const row = ws.addRow([fmtDate(c.fecha), c.curso, parseFloat(c.monto)]);
+        row.eachCell(cell => cell.border = B);
+        totalCurMes += parseFloat(c.monto);
+      });
+
+      const totalCurRow = ws.addRow(['', 'TOTAL CURSOS', parseFloat(totalCurMes.toFixed(2))]);
+      totalCurRow.eachCell(cell => {
+        cell.font = {bold:true, color:{argb:MORADO_TXT}};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:MORADO_CLR}};
+        cell.border = B;
+      });
+      granTotalMes += totalCurMes;
+    }
+
+    // ── GRAN TOTAL DEL MES ──
+    const granRow = ws.addRow(['', 'GRAN TOTAL ' + mesLabel, parseFloat(granTotalMes.toFixed(2))]);
+    granRow.eachCell(cell => {
+      cell.font = {bold:true, color:{argb:'FFFFFFFF'}};
+      cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:OSCURO}};
+      cell.border = B;
+    });
+    ws.addRow([]); ws.addRow([]);
+    granTotalGeneral += granTotalMes;
   }
-  if(memsF.length){
-    const ws=wb.addWorksheet('Membresias');
-    const THIN={style:'thin', color:{argb:'FFBFBFBF'}};
-    const BORDER_ALL={top:THIN,left:THIN,bottom:THIN,right:THIN};
-    ws.columns=[{width:14},{width:16},{width:16},{width:26}];
-    const headerRow=ws.addRow(['Tipo','Fecha','Ganancia (USD)','Nota']);
-    headerRow.eachCell(cell=>{
-      cell.font={bold:true, color:{argb:'FFFFFFFF'}};
-      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FF185FA5'}};
-      cell.border=BORDER_ALL;
-    });
-    memsF.forEach(m=>{
-      const row=ws.addRow([m.tipo, fmtDate(m.fecha), parseFloat(m.monto), m.nota||'']);
-      row.eachCell(cell=>cell.border=BORDER_ALL);
-    });
-    const totalMem=memsF.reduce((s,m)=>s+parseFloat(m.monto),0);
-    const totalRow=ws.addRow(['', 'TOTAL', parseFloat(totalMem.toFixed(2)), '']);
-    totalRow.eachCell(cell=>{
-      cell.font={bold:true};
-      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFEBF2FA'}};
-      cell.border=BORDER_ALL;
+
+  // ── GRAN TOTAL GENERAL (si hay más de un mes) ──
+  if (mesesOrdenados.length > 1) {
+    const finalRow = ws.addRow(['', 'TOTAL GENERAL', parseFloat(granTotalGeneral.toFixed(2))]);
+    finalRow.eachCell(cell => {
+      cell.font = {bold:true, size:13, color:{argb:'FFFFFFFF'}};
+      cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF1D9E75'}};
+      cell.border = B;
     });
   }
-  if(cursosF && cursosF.length){
-    const ws=wb.addWorksheet('Cursos');
-    const THIN={style:'thin', color:{argb:'FFBFBFBF'}};
-    const BORDER_ALL={top:THIN,left:THIN,bottom:THIN,right:THIN};
-    ws.columns=[{width:36},{width:16},{width:16},{width:26}];
-    const headerRow=ws.addRow(['Curso','Fecha','Comisión (USD)','Nota']);
-    headerRow.eachCell(cell=>{
-      cell.font={bold:true, color:{argb:'FFFFFFFF'}};
-      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FF1D9E75'}};
-      cell.border=BORDER_ALL;
-    });
-    cursosF.forEach(c=>{
-      const row=ws.addRow([c.curso, fmtDate(c.fecha), parseFloat(c.monto), c.nota||'']);
-      row.eachCell(cell=>cell.border=BORDER_ALL);
-    });
-    const totalCur=cursosF.reduce((s,c)=>s+parseFloat(c.monto),0);
-    const totalRow=ws.addRow(['', 'TOTAL', parseFloat(totalCur.toFixed(2)), '']);
-    totalRow.eachCell(cell=>{
-      cell.font={bold:true};
-      cell.fill={type:'pattern', pattern:'solid', fgColor:{argb:'FFE8F5EF'}};
-      cell.border=BORDER_ALL;
-    });
-  }
+
   await downloadWorkbook(wb, 'mis_propinas_'+label.toLowerCase().replace(/\s+/g,'_')+'.xlsx');
   showToast('✓ Excel descargado');
 }
