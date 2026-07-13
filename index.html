@@ -1033,7 +1033,7 @@ async function eliminarCuenta(userId, nombre){
     const r5 = await sb.from('perfiles').delete().eq('user_id', userId);
     if(r5.error){ showToast('Error: ' + r5.error.message, true); return; }
     showToast(`✓ Cuenta de ${nombre} eliminada`);
-    setTimeout(() => loadAdminPanel(), 800);
+    setTimeout(() => loadAdminData(), 800);
   } catch(e) {
     showToast('Error al eliminar: ' + e.message, true);
   }
