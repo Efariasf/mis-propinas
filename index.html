@@ -897,9 +897,6 @@ const SUPABASE_URL='https://acnzhwfkwrtrmkanwbtp.supabase.co';
 const SUPABASE_KEY='sb_publishable_BC5a1ZI6M6-UnS_QYZN3Kg_dyVm1Ogg';
 const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-
-// Cerrar sesión al cerrar la ventana/pestaña (equivalente al sessionStorage anterior)
-window.addEventListener('beforeunload', () => { sb.auth.signOut({scope:'local'}); });
 const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 let tips=[],mems=[],cursos=[],chartMode='monthly',chartInst=null,editingId=null,currentUser=null;
 
