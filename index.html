@@ -963,7 +963,7 @@ async function updatePasswordRecovery(){
   btn.disabled=true;btn.textContent='Guardando...';
   const{error}=await sb.auth.updateUser({password:pass});
   btn.disabled=false;btn.textContent='Guardar nueva contraseña';
-  if(error){msg.className='auth-msg error';msg.textContent=error.message;return;}
+  if(error){msg.className="auth-msg error";msg.textContent=error.message==="0"||!error.message?"Error al crear la cuenta. El correo puede que ya esté registrado.":error.message;return;}
   msg.className='auth-msg success';msg.textContent='✓ Contraseña actualizada. Vuelve a iniciar sesión con tu nueva contraseña.';
   setTimeout(async()=>{
     window.location.hash='';
@@ -1002,7 +1002,7 @@ async function register(){
   btn.disabled=true;btn.textContent='Creando cuenta...';
   const{data,error}=await sb.auth.signUp({email,password:pass});
   btn.disabled=false;btn.textContent='Crear cuenta';
-  if(error){msg.className='auth-msg error';msg.textContent=error.message;return;}
+  if(error){msg.className="auth-msg error";msg.textContent=error.message==="0"||!error.message?"Error al crear la cuenta. El correo puede que ya esté registrado.":error.message;return;}
   if(data.user){
     await sb.from('perfiles').insert([{user_id:data.user.id,nombre,email:data.user.email}]);
     if(data.session){showApp(data.user);}
