@@ -2783,15 +2783,33 @@ function exportPDFFiltered(tipsF, memsF, cursosF, label){
 
 (async()=>{
   const isRecovery = window.location.hash.includes('type=recovery');
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlError = urlParams.get('error');
+
   if (isRecovery) {
     showSetNewPassword();
-  } else {
-    const{data:{session}}=await sb.auth.getSession();
-    if(session){showApp(session.user);}else{showAuth();}
+    return;
   }
+
+  if (urlError) {
+    // Hubo un error en OAuth, limpiar URL y mostrar login
+    history.replaceState({}, '', window.location.pathname);
+    showAuth();
+    return;
+  }
+
+  // getSession con timeout de 4 segundos para no quedarse colgado
+  try {
+    const sessionPromise = sb.auth.getSession();
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({data:{session:null}}), 4000));
+    const {data:{session}} = await Promise.race([sessionPromise, timeoutPromise]);
+    if(session){showApp(session.user);}else{showAuth();}
+  } catch(e) {
+    showAuth();
+  }
+
   sb.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){ showSetNewPassword(); return; }
-    if(isRecovery) return;
     if(event==='SIGNED_IN'&&session){
       document.getElementById('loading-screen').style.display='none';
       showApp(session.user);
@@ -2805,13 +2823,11 @@ function exportPDFFiltered(tipsF, memsF, cursosF, label){
       }
     }
   });
-  // Fallback: si después de 5 segundos sigue en loading, verificar sesión de nuevo
-  setTimeout(async()=>{
+
+  // Fallback: si después de 5 segundos sigue en loading, forzar login
+  setTimeout(()=>{
     const ls = document.getElementById('loading-screen');
-    if(ls && ls.style.display !== 'none'){
-      const{data:{session}}=await sb.auth.getSession();
-      if(session){showApp(session.user);}else{showAuth();}
-    }
+    if(ls && ls.style.display !== 'none'){ showAuth(); }
   }, 5000);
 })();
 </script>
