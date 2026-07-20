@@ -906,6 +906,7 @@ function showToast(msg,isError){const t=document.getElementById('toast');t.textC
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
 function showApp(user){
+  if(currentUser && currentUser.id === user.id) return;
   currentUser=user;
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('auth-wrap').style.display='none';
@@ -2784,16 +2785,24 @@ function exportPDFFiltered(tipsF, memsF, cursosF, label){
 
 (async()=>{
   const isRecovery = window.location.hash.includes('type=recovery');
+  const isOAuthCallback = window.location.hash.includes('access_token') || 
+                          window.location.hash.includes('error') ||
+                          window.location.search.includes('code=');
+
   if (isRecovery) {
     showSetNewPassword();
+  } else if (isOAuthCallback) {
+    // Esperar a que Supabase procese el token OAuth
+    document.getElementById('loading-screen').style.display='flex';
   } else {
     const{data:{session}}=await sb.auth.getSession();
     if(session){showApp(session.user);}else{showAuth();}
   }
+
   sb.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){ showSetNewPassword(); return; }
     if(isRecovery) return;
-    if(event==='SIGNED_IN'&&session)showApp(session.user);
+    if(event==='SIGNED_IN'&&session){ showApp(session.user); return; }
     if(event==='SIGNED_OUT')showAuth();
     if(event==='TOKEN_REFRESHED'&&session){
       const credKey='bio_cred_'+session.user.id;
