@@ -1964,10 +1964,6 @@ async function loadAdminData() {
     sb.from('admins').select('user_id')
   ]);
 
-  const { data: users } = await sb.auth.admin ? 
-    { data: [] } : 
-    sb.from('propinas').select('user_id').then(r => ({ data: [...new Set((r.data||[]).map(x=>x.user_id))] }));
-
   const tips = allTips || [];
   const mems = allMems || [];
   const now = new Date();
