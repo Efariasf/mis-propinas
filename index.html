@@ -1198,7 +1198,6 @@ async function loginConBiometria(){
     if(error||!data.session) throw new Error('Tu sesión biométrica venció. Inicia sesión una vez con tu contraseña y quedará lista de nuevo.');
     localStorage.setItem(bioTokenKey(info.userId), data.session.refresh_token);
     showApp(data.session.user);
-    loadAll();
   } catch(e){
     msg.className='auth-msg error';
     if(e.name==='NotAllowedError') msg.textContent='Verificación cancelada. Puedes entrar con tu contraseña.';
