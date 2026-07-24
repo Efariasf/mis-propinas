@@ -1,7 +1,7 @@
 {
   "name": "Mis Propinas",
   "short_name": "Propinas",
-  "description": "Registra tus propinas, membresias y cursos",
+  "description": "Registra tus propinas, membresías y cursos",
   "start_url": "https://proopinas.vercel.app/",
   "scope": "https://proopinas.vercel.app/",
   "display": "standalone",
