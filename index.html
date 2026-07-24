@@ -1480,6 +1480,8 @@ async function addTip(){
   tips.unshift(data[0]);
   document.getElementById('f-name').value='';document.getElementById('f-amount').value='';
   document.getElementById('f-note').value='';document.getElementById('f-date').value=today();
+  const descEl=document.getElementById('f-descuento');
+  if(descEl.checked){descEl.checked=false;toggleDescuento(descEl);}
   const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
   updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
   showToast(esDescuento?'✓ Descuento aplicado':'✓ Propina guardada');
