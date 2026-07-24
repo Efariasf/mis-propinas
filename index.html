@@ -1762,7 +1762,8 @@ function renderMeta(){
   const curM=now.getMonth()+1,curY=now.getFullYear();
   const monthTips=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
   const monthMems=mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
-  const actual=monthTips+monthMems;
+  const monthCursos=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
+  const actual=monthTips+monthMems+monthCursos;
   const pct=Math.min(100,Math.round((actual/metaMensual)*100));
   document.getElementById('meta-actual').textContent='$'+actual.toFixed(2);
   document.getElementById('meta-objetivo').textContent='de $'+metaMensual.toFixed(2);
