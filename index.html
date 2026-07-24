@@ -2808,6 +2808,10 @@ function exportPDFFiltered(tipsF, memsF, cursosF, label){
     if(event==='PASSWORD_RECOVERY'){ showSetNewPassword(); return; }
     if(event==='SIGNED_IN'&&session){
       document.getElementById('loading-screen').style.display='none';
+      // Supabase puede volver a emitir SIGNED_IN al recuperar el foco de la pestaña
+      // (revisión de refresco de token), sin que haya un login nuevo real.
+      // Si ya estamos mostrando a este mismo usuario, evitamos recargar todo de nuevo.
+      if(currentUser && currentUser.id===session.user.id) return;
       showApp(session.user);
       return;
     }
