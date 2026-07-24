@@ -1354,7 +1354,19 @@ Si te siguen pagando más adelante en este mismo período, lo nuevo se irá acum
 
   if (error) { showToast('Error al registrar cobro', true); return; }
 
-  const newCobro = { id: data?.[0]?.id, tipo, periodo_inicio: inicio.toISOString().slice(0,10), periodo_fin: fin.toISOString().slice(0,10), monto: pendienteActual, cobrado_en: new Date().toISOString() };
+  // Si el insert no devolvió el id (p.ej. por RLS), lo buscamos aparte para
+  // que "Deshacer" siempre pueda borrar el registro real en la base de datos.
+  let insertedId = data?.[0]?.id;
+  if (!insertedId) {
+    const { data: fetched } = await sb.from('cobros').select('id')
+      .eq('user_id', currentUser.id).eq('tipo', tipo)
+      .eq('periodo_inicio', inicio.toISOString().slice(0,10))
+      .eq('periodo_fin', fin.toISOString().slice(0,10))
+      .order('cobrado_en', { ascending: false }).limit(1).maybeSingle();
+    insertedId = fetched?.id;
+  }
+
+  const newCobro = { id: insertedId, tipo, periodo_inicio: inicio.toISOString().slice(0,10), periodo_fin: fin.toISOString().slice(0,10), monto: pendienteActual, cobrado_en: new Date().toISOString() };
   cobrosHistory.unshift(newCobro);
   renderCobros();
   updateCobro();
@@ -1386,13 +1398,14 @@ async function undoCobro(cobroId) {
   const t = document.getElementById('toast');
   t.classList.remove('show');
   if (!cobroId || cobroId === 'undefined') {
-    const last = cobrosHistory[0];
-    if (!last) return;
-    cobrosHistory.shift();
-  } else {
-    await sb.from('cobros').delete().eq('id', cobroId);
-    cobrosHistory = cobrosHistory.filter(c => c.id !== cobroId);
+    // Sin id no podemos borrar el registro real en Supabase: si fingiéramos
+    // el deshacer solo en local, el cobro quedaría "pagado" en la base de
+    // datos para siempre sin que la app lo sepa.
+    showToast('No se pudo deshacer automáticamente. Pídele a un admin que lo revierta desde el panel de administrador.', true);
+    return;
   }
+  await sb.from('cobros').delete().eq('id', cobroId);
+  cobrosHistory = cobrosHistory.filter(c => c.id !== cobroId);
   renderCobros();
   updateCobro();
   showToast('↩ Cobro deshecho');
