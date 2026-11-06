@@ -480,6 +480,9 @@ tbody tr:hover td{background:var(--bg2);}
 
       </div>
 
+      <!-- PERÍODOS ANTERIORES SIN COBRAR -->
+      <div id="cobros-atrasados" style="display:none;margin-bottom:24px"></div>
+
       <!-- ESTADÍSTICAS Y META DEL MES -->
       <div class="sections-grid" style="margin-bottom:24px">
         <div class="cobro-card" style="margin-bottom:0">
@@ -874,7 +877,7 @@ tbody tr:hover td{background:var(--bg2);}
     <div class="form-grid">
       <div class="field"><label>Nombre</label><input id="e-name" type="text"></div>
       <div class="field"><label>Fecha</label><input id="e-date" type="date"></div>
-      <div class="field"><label>Monto $</label><input id="e-amount" type="number" step="0.01"></div>
+      <div class="field"><label>Monto $</label><input id="e-amount" type="number" min="0" step="0.01"></div>
       <div class="field"><label>Nota</label><input id="e-note" type="text"></div>
     </div>
     <span class="err" id="edit-error">Completa todos los campos.</span>
@@ -1198,6 +1201,7 @@ async function loginConBiometria(){
     if(error||!data.session) throw new Error('Tu sesión biométrica venció. Inicia sesión una vez con tu contraseña y quedará lista de nuevo.');
     localStorage.setItem(bioTokenKey(info.userId), data.session.refresh_token);
     showApp(data.session.user);
+    loadAll();
   } catch(e){
     msg.className='auth-msg error';
     if(e.name==='NotAllowedError') msg.textContent='Verificación cancelada. Puedes entrar con tu contraseña.';
@@ -1354,19 +1358,7 @@ Si te siguen pagando más adelante en este mismo período, lo nuevo se irá acum
 
   if (error) { showToast('Error al registrar cobro', true); return; }
 
-  // Si el insert no devolvió el id (p.ej. por RLS), lo buscamos aparte para
-  // que "Deshacer" siempre pueda borrar el registro real en la base de datos.
-  let insertedId = data?.[0]?.id;
-  if (!insertedId) {
-    const { data: fetched } = await sb.from('cobros').select('id')
-      .eq('user_id', currentUser.id).eq('tipo', tipo)
-      .eq('periodo_inicio', inicio.toISOString().slice(0,10))
-      .eq('periodo_fin', fin.toISOString().slice(0,10))
-      .order('cobrado_en', { ascending: false }).limit(1).maybeSingle();
-    insertedId = fetched?.id;
-  }
-
-  const newCobro = { id: insertedId, tipo, periodo_inicio: inicio.toISOString().slice(0,10), periodo_fin: fin.toISOString().slice(0,10), monto: pendienteActual, cobrado_en: new Date().toISOString() };
+  const newCobro = { id: data?.[0]?.id, tipo, periodo_inicio: inicio.toISOString().slice(0,10), periodo_fin: fin.toISOString().slice(0,10), monto: pendienteActual, cobrado_en: new Date().toISOString() };
   cobrosHistory.unshift(newCobro);
   renderCobros();
   updateCobro();
@@ -1398,14 +1390,13 @@ async function undoCobro(cobroId) {
   const t = document.getElementById('toast');
   t.classList.remove('show');
   if (!cobroId || cobroId === 'undefined') {
-    // Sin id no podemos borrar el registro real en Supabase: si fingiéramos
-    // el deshacer solo en local, el cobro quedaría "pagado" en la base de
-    // datos para siempre sin que la app lo sepa.
-    showToast('No se pudo deshacer automáticamente. Pídele a un admin que lo revierta desde el panel de administrador.', true);
-    return;
+    const last = cobrosHistory[0];
+    if (!last) return;
+    cobrosHistory.shift();
+  } else {
+    await sb.from('cobros').delete().eq('id', cobroId);
+    cobrosHistory = cobrosHistory.filter(c => c.id !== cobroId);
   }
-  await sb.from('cobros').delete().eq('id', cobroId);
-  cobrosHistory = cobrosHistory.filter(c => c.id !== cobroId);
   renderCobros();
   updateCobro();
   showToast('↩ Cobro deshecho');
@@ -1493,8 +1484,6 @@ async function addTip(){
   tips.unshift(data[0]);
   document.getElementById('f-name').value='';document.getElementById('f-amount').value='';
   document.getElementById('f-note').value='';document.getElementById('f-date').value=today();
-  const descEl=document.getElementById('f-descuento');
-  if(descEl.checked){descEl.checked=false;toggleDescuento(descEl);}
   const mesEl=document.getElementById('mes-actual'); if(mesEl) mesEl.textContent=getMesActual();
   updateYearFilters();renderTips();updateGrand();updateChart();updateCobro();
   showToast(esDescuento?'✓ Descuento aplicado':'✓ Propina guardada');
@@ -1523,7 +1512,7 @@ async function saveEditTip(){
   const amount=parseFloat(document.getElementById('e-amount').value);
   const note=document.getElementById('e-note').value.trim();
   const err=document.getElementById('edit-error');
-  if(!name||!date||isNaN(amount)||amount===0){err.style.display='block';return;}
+  if(!name||!date||isNaN(amount)||amount<=0){err.style.display='block';return;}
   err.style.display='none';
   const{error}=await sb.from('propinas').update({name,date,amount,note}).eq('id',editingId);
   if(error){showToast('Error al actualizar',true);return;}
@@ -1762,8 +1751,7 @@ function renderMeta(){
   const curM=now.getMonth()+1,curY=now.getFullYear();
   const monthTips=tips.filter(t=>{const d=new Date(t.date+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,t)=>s+parseFloat(t.amount),0);
   const monthMems=mems.filter(m=>{const d=new Date(m.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,m)=>s+parseFloat(m.monto),0);
-  const monthCursos=cursos.filter(c=>{const d=new Date(c.fecha+'T00:00:00');return d.getMonth()+1===curM&&d.getFullYear()===curY;}).reduce((s,c)=>s+parseFloat(c.monto),0);
-  const actual=monthTips+monthMems+monthCursos;
+  const actual=monthTips+monthMems;
   const pct=Math.min(100,Math.round((actual/metaMensual)*100));
   document.getElementById('meta-actual').textContent='$'+actual.toFixed(2);
   document.getElementById('meta-objetivo').textContent='de $'+metaMensual.toFixed(2);
@@ -1964,6 +1952,10 @@ async function loadAdminData() {
     sb.from('membresias').select('*').order('fecha', { ascending: false }),
     sb.from('admins').select('user_id')
   ]);
+
+  const { data: users } = await sb.auth.admin ? 
+    { data: [] } : 
+    sb.from('propinas').select('user_id').then(r => ({ data: [...new Set((r.data||[]).map(x=>x.user_id))] }));
 
   const tips = allTips || [];
   const mems = allMems || [];
@@ -2272,6 +2264,112 @@ function getPeriodo(ciclo) {
   return { inicio, fin, label, diasRestantes };
 }
 
+
+// ===== PERÍODOS ANTERIORES SIN COBRAR =====
+function isoLocal(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function periodosAnteriores(ciclo, n){
+  const mesesFull=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesesShort=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth(), half=now.getDate()<=15?1:2;
+  const out=[];
+  for(let k=0;k<n;k++){
+    let inicio, fin, label;
+    if(ciclo==='mensual'){
+      m--; if(m<0){m=11;y--;}
+      inicio=new Date(y,m,1); fin=new Date(y,m+1,0);
+      label=mesesFull[m]+' '+y;
+    } else {
+      if(half===2){ half=1; } else { half=2; m--; if(m<0){m=11;y--;} }
+      if(half===1){
+        inicio=new Date(y,m,1); fin=new Date(y,m,15);
+        label='1 — 15 de '+mesesShort[m]+' '+y;
+      } else {
+        inicio=new Date(y,m,16); fin=new Date(y,m+1,0);
+        label='16 — '+fin.getDate()+' de '+mesesShort[m]+' '+y;
+      }
+    }
+    out.push({inicio:isoLocal(inicio), fin:isoLocal(fin), label});
+  }
+  return out;
+}
+
+function renderPendientesAnteriores(){
+  const wrap=document.getElementById('cobros-atrasados');
+  if(!wrap || !currentUser) return;
+  const verProp = document.getElementById('cobro-card-prop')?.style.display !== 'none';
+  const verMem  = document.getElementById('cobro-card-mem')?.style.display !== 'none';
+  const items=[];
+
+  if(verProp){
+    // Quincenal mira 4 períodos hacia atrás (2 meses), mensual mira 2
+    periodosAnteriores(userCiclo, userCiclo==='mensual'?2:4).forEach(p=>{
+      const total=tips.filter(t=>t.date>=p.inicio && t.date<=p.fin).reduce((s,t)=>s+parseFloat(t.amount),0);
+      const cobrado=cobrosHistory.filter(c=>c.tipo==='propinas' && c.periodo_inicio===p.inicio && c.periodo_fin===p.fin).reduce((s,c)=>s+parseFloat(c.monto),0);
+      const pend=total-cobrado;
+      if(pend>0.005) items.push({tipo:'propinas', icono:'💵', nombre:'Propinas', ...p, pendiente:pend});
+    });
+  }
+  if(verMem){
+    periodosAnteriores('mensual', 2).forEach(p=>{
+      const totMem=mems.filter(m=>m.fecha>=p.inicio && m.fecha<=p.fin).reduce((s,m)=>s+parseFloat(m.monto),0);
+      const totCur=cursos.filter(c=>c.fecha>=p.inicio && c.fecha<=p.fin).reduce((s,c)=>s+parseFloat(c.monto),0);
+      const cobrado=cobrosHistory.filter(c=>c.tipo==='membresias' && c.periodo_inicio===p.inicio && c.periodo_fin===p.fin).reduce((s,c)=>s+parseFloat(c.monto),0);
+      const pend=(totMem+totCur)-cobrado;
+      if(pend>0.005) items.push({tipo:'membresias', icono:'🏆', nombre:'Membresías y cursos', ...p, pendiente:pend});
+    });
+  }
+
+  if(!items.length){ wrap.style.display='none'; wrap.innerHTML=''; return; }
+
+  wrap.innerHTML = `<div style="background:rgba(186,117,23,0.10);border:0.5px solid var(--amber);border-radius:var(--radius-lg);padding:16px 18px">
+    <div style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:4px">⏳ Períodos anteriores sin cobrar</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Esto quedó pendiente de un período que ya terminó. Si ya te lo pagaron, márcalo como cobrado.</div>
+    ${items.map(it=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:0.5px solid var(--border)">
+      <div style="min-width:160px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${it.icono} ${it.nombre}</div>
+        <div style="font-size:12px;color:var(--text2)">${it.label}</div>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:var(--amber)">$${it.pendiente.toFixed(2)}</div>
+      <button class="btn-cobrar-atrasado" data-tipo="${it.tipo}" data-inicio="${it.inicio}" data-fin="${it.fin}" data-monto="${it.pendiente.toFixed(2)}" data-label="${it.label}" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 14px;height:34px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">✓ Ya cobré esto</button>
+    </div>`).join('')}
+  </div>`;
+
+  if(!wrap.dataset.bound){
+    wrap.dataset.bound='1';
+    wrap.addEventListener('click', (e)=>{
+      const b=e.target.closest('.btn-cobrar-atrasado');
+      if(b) cobrarPeriodoAnterior(b);
+    });
+  }
+  wrap.style.display='block';
+}
+
+let cobroAtrasadoEnProceso=false;
+async function cobrarPeriodoAnterior(btn){
+  if(cobroAtrasadoEnProceso) return;
+  const {tipo,inicio,fin,label}=btn.dataset;
+  const monto=parseFloat(btn.dataset.monto);
+  if(!monto||monto<=0) return;
+  const nombre = tipo==='propinas' ? 'tus propinas' : 'tus membresías y cursos';
+  if(!confirm(`¿Confirmas que ya recibiste el pago de ${nombre} por $${monto.toFixed(2)}?\n\nPeríodo: ${label}`)) return;
+  cobroAtrasadoEnProceso=true;
+  btn.disabled=true; btn.textContent='Guardando...';
+  const {data,error}=await sb.from('cobros').insert([{
+    user_id:currentUser.id, tipo, periodo_inicio:inicio, periodo_fin:fin, monto
+  }]).select();
+  cobroAtrasadoEnProceso=false;
+  if(error){ btn.disabled=false; btn.textContent='✓ Ya cobré esto'; showToast('Error al registrar cobro', true); return; }
+  const newCobro={id:data?.[0]?.id, tipo, periodo_inicio:inicio, periodo_fin:fin, monto, cobrado_en:new Date().toISOString()};
+  cobrosHistory.unshift(newCobro);
+  renderCobros();
+  updateCobro();
+  showUndoToast(newCobro);
+}
+
 function getPeriodoAnterior(ciclo) {
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
@@ -2292,6 +2390,7 @@ function getPeriodoAnterior(ciclo) {
 }
 
 function updateCobro() {
+  try { renderPendientesAnteriores(); } catch(e) {}
   try {
     // ---- PROPINAS (sigue el ciclo elegido: mensual o quincenal) ----
     const pp = getPeriodo(userCiclo);
@@ -2818,10 +2917,6 @@ function exportPDFFiltered(tipsF, memsF, cursosF, label){
     if(event==='PASSWORD_RECOVERY'){ showSetNewPassword(); return; }
     if(event==='SIGNED_IN'&&session){
       document.getElementById('loading-screen').style.display='none';
-      // Supabase puede volver a emitir SIGNED_IN al recuperar el foco de la pestaña
-      // (revisión de refresco de token), sin que haya un login nuevo real.
-      // Si ya estamos mostrando a este mismo usuario, evitamos recargar todo de nuevo.
-      if(currentUser && currentUser.id===session.user.id) return;
       showApp(session.user);
       return;
     }
